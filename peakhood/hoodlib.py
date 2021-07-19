@@ -1583,7 +1583,7 @@ def bed_read_rows_into_dic(in_bed,
                 continue
 
             if not new_ids:
-                assert site_id not in id2row_dic, "non-unique site ID (\"%s\") found in \"%s\". Please set --new-ids or provide unique column 4 --in site IDs" %(site_id, in_bed)
+                assert site_id not in id2row_dic, "non-unique site ID (\"%s\") found in \"%s\". Please set --new-site-id or provide unique column 4 --in site IDs" %(site_id, in_bed)
             else:
                 if new_stem_id:
                     site_id = new_stem_id + "_" + str(c_read)

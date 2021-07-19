@@ -595,7 +595,7 @@ def setup_argument_parser():
                    dest="new_ids",
                    default = False,
                    action = "store_true",
-                   help = "Generate new IDs to exchange --in BED column 4 site IDs. Use dataset ID from --in file names as stem (see --in option). NOTE that site IDs have to be unique if --new-ids is not set (default: False)")
+                   help = "Generate new IDs to exchange --in BED column 4 site IDs. Use dataset ID from --in file names as stem (see --in option). NOTE that site IDs have to be unique if --new-site-id is not set (default: False)")
     p_batch.add_argument("--add-gtf",
                    dest="merge_gtf",
                    type=str,
@@ -960,7 +960,7 @@ def main_extract(args):
         print("--site-id set, process only these sites ... ")
         wanted_site_ids_dic = {}
         for site_id in args.list_site_ids:
-            assert site_id in id2row_dic, "given --site-id %s not part of --in set. Try to relax filter settings or disable --new-ids if set (be sure to provide unique --in IDs)" %(site_id)
+            assert site_id in id2row_dic, "given --site-id %s not part of --in set. Try to relax filter settings or disable --new-site-id if set (be sure to provide unique --in IDs)" %(site_id)
             wanted_site_ids_dic[site_id] = 1
         hoodlib.bed_write_row_dic_into_file(id2row_dic, in_sites_tmp_bed,
                                             id2out_dic=wanted_site_ids_dic)
