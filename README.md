@@ -362,14 +362,16 @@ Then all we have to do to process all the files is to run:
 
 
 ```
-peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --report
+peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --bam-pp-mode 2 --report
 ```
 
 This includes running `peakhood extract` on all single datasets, and afterwards `peakhood merge` on the generated datasets. Regarding site extraction options, `peakhood batch` accepts (almost) all `peakhood extract` options (such as `--pre-merge`, or filtering options), i.e., to process all input datasets the same way. Setting `--report` equals to setting `--report` for each extraction run, as well as the merge part. Output files correspond to the `peakhood merge` output files, and the single `peakhood extract` output folders are stored inside `batch_test_out`.
 
+Note that if the BAM files have already been merged and filtered by R1 or R2 reads, `--bam-pp-mode 2` should not be set. Moreover, if the BED files do not contain unique IDs, `peakhood batch` can generate them for each set by adding `--new-ids` to the command. Likewise, if you have eCLIP IDR peaks, you might want to do pre-merging of the peak regions (i.e., merging book-ended and overlapping regions). The new batch command then looks like:
 
-
-
+```
+peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --report --new-ids --pre-merge
+```
 
 
 ## Documentation
