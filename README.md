@@ -132,7 +132,7 @@ Peakhood was tested with the following versions: bedtools (2.30.0), samtools (1.
 ```
 git clone https://github.com/BackofenLab/Peakhood.git
 cd Peakhood
-python -m pip install . --ignore-installed --no-deps -vv python --use-feature=in-tree-build
+python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
 ```
 
 Now we can run Peakhood from any given folder (just remember to re-activate the environment once you open a new shell):
