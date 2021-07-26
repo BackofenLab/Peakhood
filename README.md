@@ -131,8 +131,8 @@ conda install -c bioconda ucsc-twobittofa
 Peakhood was tested with the following versions: bamtools (2.5.1), bedtools (2.30.0), samtools (1.13), markdown (3.3.4), seaborn (0.11.1). Finally, to install the tool itself, we simply clone the repository and execute the installation script inside the folder:
 
 ```
-git clone https://github.com/BackofenLab/peakhood.git
-cd peakhood
+git clone https://github.com/BackofenLab/Peakhood.git
+cd Peakhood
 python -m pip install . --ignore-installed --no-deps -vv python --use-feature=in-tree-build
 ```
 
