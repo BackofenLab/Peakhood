@@ -1258,7 +1258,7 @@ extract_out/intergenic_sites.fa
 Another table file `all_sites.tsv` contains each site and its assigned region type. It also includes new merged ID information, the IGV-formatted genomic site region, as well as which context filter was applied to assign an exonic site to genomic context (filter IDs: EIR, EIBR, EIR_WT, EIBR_WT).
 
 
-#### Merging extracted datasets
+#### Output files from merging extracted datasets
 
 When merging extracted datasets with `peakhood merge`, there are a few output files that get produced:
 
