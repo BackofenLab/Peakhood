@@ -121,19 +121,18 @@ To manually install Peakhood, we first create a Conda environment (as described 
 ```
 conda install -c conda-forge seaborn
 conda install -c conda-forge markdown
-conda install -c bioconda bamtools
 conda install -c bioconda bedtools
 conda install -c bioconda samtools
 conda install -c bioconda ucsc-twobitinfo
 conda install -c bioconda ucsc-twobittofa
 ```
 
-Peakhood was tested with the following versions: bamtools (2.5.1), bedtools (2.30.0), samtools (1.13), markdown (3.3.4), seaborn (0.11.1). Finally, to install the tool itself, we simply clone the repository and execute the installation script inside the folder:
+Peakhood was tested with the following versions: bedtools (2.30.0), samtools (1.13), markdown (3.3.4), seaborn (0.11.1). Finally, to install the tool itself, we simply clone the repository and execute the installation script inside the folder:
 
 ```
 git clone https://github.com/BackofenLab/Peakhood.git
 cd Peakhood
-python -m pip install . --ignore-installed --no-deps -vv python --use-feature=in-tree-build
+python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
 ```
 
 Now we can run Peakhood from any given folder (just remember to re-activate the environment once you open a new shell):
