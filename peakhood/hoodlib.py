@@ -79,6 +79,19 @@ def dir_get_files(file_dir,
 
 ################################################################################
 
+def shutil_copy_file(from_file, to_file):
+    """
+    Copy a file to another destination.
+    This will overwrite to_file (!).
+
+    """
+    assert os.path.exists(from_file), "given file %s does not exist" %(from_file)
+    from shutil import copyfile
+    copyfile(from_file, to_file)
+
+
+################################################################################
+
 def get_filter_lists(list_f1_filter, list_f2_filter,
                      valid_filters_dic=False):
     """
@@ -7117,6 +7130,7 @@ def ph_extract_generate_html_report(out_folder, hoodlib_path,
                             gen_rr_ratios_dic=False,
                             tr_rr_ratios_dic=False,
                             site_lengths_list=False,
+                            copy_logo=True,
                             html_report_out="report.peakhood_extract.html",
                             plots_subfolder="html_plots"):
     """
@@ -7151,6 +7165,8 @@ def ph_extract_generate_html_report(out_folder, hoodlib_path,
         Transcript site to repeat region ratio
         (repeat region nucleotides / all site nucleotides)
         site_id,tr_id combination ID -> ratio
+    copy_logo:
+        Copy logo to results plots folder.
 
     """
 
@@ -7186,13 +7202,19 @@ def ph_extract_generate_html_report(out_folder, hoodlib_path,
     # plotly_js_path = hoodlib_path + "/content/plotly-latest.min.js"
     # assert os.path.exists(plotly_js_path), "plotly js %s not found" %(plotly_js_path)
 
+    # Copy logo to plots folder.
+    if copy_logo:
+        logo_out = plots_out_folder + "/" + "logo.png"
+        shutil_copy_file(logo1_path, logo_out)
+        logo1_path = plots_folder + "/" + "logo.png"
+
     mdtext = """
 <head>
 <title>Peakhood - Context Extraction Report</title>
 </head>
 
 <img src="%s" alt="ph_logo"
-	title="ph_logo" width="675" />
+	title="ph_logo" width="650" />
 
 <p><body style="font-family:sans-serif" link="#007af4" vlink="#007af4" alink="#007af4"></p>
 
@@ -7258,7 +7280,7 @@ maximum site length, but this can increase again if --pre-merge is set
     mdtext += 'title="Site length distribution" width="500" />' + "\n"
     mdtext += """
 
-**Figure:** Input site length distribution.
+**Figure:** Input site length distribution (after pre-filtering and-pre-merging sites).
 
 &nbsp;
 
@@ -7643,6 +7665,7 @@ def ph_merge_generate_html_report(out_folder, hoodlib_path,
                             add_stats_dic=False,
                             set_stats_dd=False,
                             set2site_len_dic=False,
+                            copy_logo=True,
                             html_report_out="report.peakhood_merge.html",
                             plots_subfolder="html_plots"):
     """
@@ -7681,6 +7704,12 @@ def ph_merge_generate_html_report(out_folder, hoodlib_path,
     # sorttable_js_path = hoodlib_path + "/content/sorttable.js"
     # plotly_js_path = hoodlib_path + "/content/plotly-latest.min.js"
     # assert os.path.exists(plotly_js_path), "plotly js %s not found" %(plotly_js_path)
+
+    # Copy logo to plots folder.
+    if copy_logo:
+        logo_out = plots_out_folder + "/" + "logo.png"
+        shutil_copy_file(logo1_path, logo_out)
+        logo1_path = plots_folder + "/" + "logo.png"
 
     mdtext = """
 <head>
