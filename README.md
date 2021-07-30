@@ -1,5 +1,8 @@
 # Peakhood
 
+[![GitHub](https://img.shields.io/github/tag/BackofenLab/Peakhood.svg)](https://github.com/BackofenLab/Peakhood)
+[![Bioconda](https://anaconda.org/bioconda/peakhood/badges/version.svg)](https://anaconda.org/bioconda/peakhood)
+
 Peakhood is a tool that takes a set of CLIP-seq peak regions, and for each region individually extracts 
 the most likely site context (transcript or genomic).
 In the following, we quickly explain [how Peakhood works](#introduction), 
