@@ -380,7 +380,7 @@ peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg3
 ## Documentation
 
 
-This documentation provides further details on Peakhood (version 0.1), divided into the following sections:
+This documentation provides further details on Peakhood (version 0.2), divided into the following sections:
 the different [program modes](#program-modes) of Peakhood, how [site context selection](#site-context-selection) works, how Peakhood [chooses the most likely transcript](#choosing-the-most-likely-transcript), Peakhood's [Inputs](#inputs), Peakhood's [Outputs](#outputs), and last but not least how [visually explore](#visual-exploration) the output data.
 
 
