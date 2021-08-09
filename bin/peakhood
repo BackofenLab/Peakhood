@@ -46,7 +46,7 @@ def setup_argument_parser():
     # Tool description text.
     help_description = """
 
-    Authentic site context extraction for CLIP-Seq peak regions.
+    Individual site context extraction for CLIP-Seq peak regions.
 
     """
 
@@ -663,7 +663,7 @@ def setup_argument_parser():
 
 def main_extract(args):
     """
-    Extract authentic site context.
+    Extract individual site context.
 
     Output different context sites to BED
     Merge entries (optionally)

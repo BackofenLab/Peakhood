@@ -397,7 +397,7 @@ An overview of the modes can be obtained by:
 $ peakhood -h
 usage: peakhood [-h] [-v] {extract,merge,batch,motif} ...
 
-Authentic site context extraction for CLIP-Seq peak regions.
+Individual site context extraction for CLIP-Seq peak regions.
 
 positional arguments:
   {extract,merge,batch,motif}
