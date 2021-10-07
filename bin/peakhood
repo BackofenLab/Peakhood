@@ -10,7 +10,7 @@ import sys
 import re
 import os
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1524,7 +1524,7 @@ def main_extract(args):
     trid2isrfc_dic:
         transcript ID to True or False; store 1 if all exons connected
         via intron-spanning reads, otherwise 0. If only one exon
-        also store False.
+        also store False. Also includes ISR reads from --rnaseq-bam.
 
     """
 
