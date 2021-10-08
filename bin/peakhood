@@ -5021,6 +5021,8 @@ def main_batch(args):
 
         # Check for errors in log file.
         error_found = hoodlib.check_string_in_file(run_log_file, "AssertionError")
+        if error_found:
+            print(output)
         assert not error_found, "An assertion error was raised during this peakhood extract run, check run log file %s for details" %(run_log_file)
 
         # Check for results.
