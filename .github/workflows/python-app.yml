@@ -34,6 +34,7 @@ jobs:
         conda install -c bioconda ucsc-twobittofa
         python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
         pip install pytest requests
+        conda list
     - name: Test with pytest
       run: |
         export PATH="/usr/share/miniconda/bin:$PATH"
