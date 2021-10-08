@@ -16,14 +16,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.8
+        python-version: 3.9
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        conda create -n peakhood python=3.8 -c conda-forge -c bioconda
+        conda create -n peakhood python=3.9 -c conda-forge -c bioconda
         export PATH="/usr/share/miniconda/bin:$PATH"
         source activate peakhood
         conda install -c bioconda ucsc-twobitinfo=377
