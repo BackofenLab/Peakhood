@@ -29,7 +29,7 @@ jobs:
         conda install -c conda-forge seaborn
         conda install -c conda-forge markdown
         conda install -c bioconda bedtools
-        conda install -c bioconda samtools
+        conda install -c bioconda samtools=1.9
         conda install -c bioconda ucsc-twobitinfo
         conda install -c bioconda ucsc-twobittofa
         python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
