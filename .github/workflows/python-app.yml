@@ -30,8 +30,8 @@ jobs:
         conda install -c conda-forge markdown
         conda install -c bioconda bedtools
         conda install -c bioconda samtools=1.9
-        conda install -c bioconda ucsc-twobitinfo
-        conda install -c bioconda ucsc-twobittofa
+        conda install -c bioconda ucsc-twobitinfo=377
+        conda install -c bioconda ucsc-twobittofa=377
         python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
         pip install pytest requests
         conda list
