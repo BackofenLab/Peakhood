@@ -25,7 +25,7 @@ def temp_batch():
     yield tmpdir.name
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def gtf_file():
     url = "http://ftp.ensembl.org/pub/release-104/gtf/homo_sapiens/Homo_sapiens.GRCh38.104.gtf.gz"
     local_file = NamedTemporaryFile(delete=False, mode="wb", suffix=".gtf.gz")
@@ -38,7 +38,7 @@ def gtf_file():
     os.unlink(local_file.name)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def two_bit_file():
     url = "https://hgdownload.cse.ucsc.edu/goldenpath/hg38/bigZips/hg38.2bit"
     local_file = NamedTemporaryFile(delete=False, mode="wb", suffix=".2bit")
