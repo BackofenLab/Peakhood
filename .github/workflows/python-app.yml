@@ -16,22 +16,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.9
+    - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.8
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         conda create -n peakhood python=3.8 -c conda-forge -c bioconda
         export PATH="/usr/share/miniconda/bin:$PATH"
         source activate peakhood
+        conda install -c bioconda ucsc-twobitinfo=377
+        conda install -c bioconda ucsc-twobittofa=377
         conda install -c conda-forge seaborn
         conda install -c conda-forge markdown
         conda install -c bioconda bedtools
         conda install -c bioconda samtools=1.9
-        conda install -c bioconda ucsc-twobitinfo=377
-        conda install -c bioconda ucsc-twobittofa=377
         python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
         pip install pytest requests
         conda list
