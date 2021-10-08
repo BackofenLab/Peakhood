@@ -4851,8 +4851,10 @@ def main_batch(args):
                                                               args.list_f2_filter)
 
     # Batch results output folder.
-    assert not os.path.exists(args.out_folder), "--out folder already exists"
-    os.makedirs(args.out_folder)
+    if os.path.exists(args.out_folder):
+        assert len(os.listdir(args.out_folder)) == 0, "non empty --out folder already exists"
+    else:
+        os.makedirs(args.out_folder)
 
     # Output mode settings.
     settings_file = args.out_folder + "/settings.peakhood_batch.out"

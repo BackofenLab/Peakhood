@@ -18,7 +18,7 @@ spec.loader.exec_module(peakhood)
 @pytest.fixture
 def temp_batch():
     tmpdir = TemporaryDirectory()
-    yield "/tmp/RIssmed_folder/"
+    yield tmpdir.name
 
 
 @pytest.fixture
