@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 from peakhood import hoodlib
+from peakhood.hoodlib import extract_multicore_wrapper
 import numpy as np
 import statistics
+import subprocess
 import argparse
 import random
+from multiprocessing import Pool
 import uuid
 import sys
 import re
@@ -411,6 +414,13 @@ def setup_argument_parser():
                    metavar='float',
                    default = None,
                    help = "Minimum site score (--in BED files column 5) for filtering (assuming higher score == better site) (default: None)")
+    p_batch.add_argument("--threads",
+                         dest="threads",
+                         type=int,
+                         metavar='int',
+                         default=1,
+                         help="Number of threads used for batch processing. (Keep in mind that changing will increase memory consumption) (default:1")
+
     p_batch.add_argument("--thr-rev-filter",
                    dest="rev_filter",
                    default = False,
@@ -4838,7 +4848,6 @@ def main_batch(args):
     assert args.min_ei_ratio > 1, "set reasonable --min-ei-ratio (> 1)"
     assert args.min_eib_ratio > 1, "set reasonable --min-eib-ratio (> 1)"
     assert args.isr_max_reg_len >= 0 and args.isr_max_reg_len <= 50, "set reasonable --isr-max-reg-len (>= 0 and <= 50)"
-
     if args.isrn_prefilter:
         assert args.isrn_prefilter > 0, "given --isr-prefilter read number has to be > 0"
     if args.merge_gtf:
@@ -4988,84 +4997,116 @@ def main_batch(args):
     extract_folders_list = []
 
     # Run peakhood extract each dataset from --in folder.
-    for dataset_id in bed_files_dic:
-        bed_file = bed_files_dic[dataset_id]
-        bam_files_list = bam_files_dic[dataset_id]
-        bam_files_str = ' '.join(bam_files_list)
+    if args.threads == 1:
+        for dataset_id in bed_files_dic:
+            bed_file = bed_files_dic[dataset_id]
+            bam_files_list = bam_files_dic[dataset_id]
+            bam_files_str = ' '.join(bam_files_list)
 
-        c_in_sites = hoodlib.count_file_rows(bed_file, nr_cols=6)
-        assert c_in_sites, "--in BED file \"%s\" contains no 6-column BED regions. Make sure to provide --in BED file with genomic regions in 6-column format" %(bed_file)
+            c_in_sites = hoodlib.count_file_rows(bed_file, nr_cols=6)
+            assert c_in_sites, "--in BED file \"%s\" contains no 6-column BED regions. Make sure to provide --in BED file with genomic regions in 6-column format" %(bed_file)
 
-        # Peakhood extract output folder.
-        extract_out_folder = args.out_folder + "/" + dataset_id + "_extract_out"
-        extract_folders_list.append(extract_out_folder)
+            # Peakhood extract output folder.
+            extract_out_folder = args.out_folder + "/" + dataset_id + "_extract_out"
+            extract_folders_list.append(extract_out_folder)
 
-        # Construct peakhood extract command.
-        extract_cmd = "peakhood extract --in " + bed_file + " --bam " + bam_files_str + " --gtf " + args.in_gtf + " --gen " + args.in_2bit + " --out " + extract_out_folder
-        extract_cmd += extract_params
-        if args.new_ids:
-            extract_cmd += " --new-site-id " + dataset_id
+            # Construct peakhood extract command.
+            extract_cmd = "peakhood extract --in " + bed_file + " --bam " + bam_files_str + " --gtf " + args.in_gtf + " --gen " + args.in_2bit + " --out " + extract_out_folder
+            extract_cmd += extract_params
+            if args.new_ids:
+                extract_cmd += " --new-site-id " + dataset_id
 
-        # Run peakhood extract.
-        import subprocess
+            # Run peakhood extract.
+            import subprocess
 
-        print("Extract transcript context sites for dataset %s ... " %(dataset_id))
-        print(extract_cmd)
-        output = subprocess.getoutput(extract_cmd)
+            print("Extract transcript context sites for dataset %s ... " %(dataset_id))
+            print(extract_cmd)
+            output = subprocess.getoutput(extract_cmd)
 
-        # Save output.
-        run_log_file = extract_out_folder + "/run.peakhood_extract.log"
-        RUNLOGOUT = open(run_log_file, "w")
-        RUNLOGOUT.write(output)
-        RUNLOGOUT.close()
+            # Save output.
+            run_log_file = extract_out_folder + "/run.peakhood_extract.log"
+            RUNLOGOUT = open(run_log_file, "w")
+            RUNLOGOUT.write(output)
+            RUNLOGOUT.close()
 
-        # Check for errors in log file.
-        error_found = hoodlib.check_string_in_file(run_log_file, "AssertionError")
-        if error_found:
-            print(output)
-        assert not error_found, "An assertion error was raised during this peakhood extract run, check run log file %s for details" %(run_log_file)
+            # Check for errors in log file.
+            error_found = hoodlib.check_string_in_file(run_log_file, "AssertionError")
+            if error_found:
+                print(output)
+            assert not error_found, "An assertion error was raised during this peakhood extract run, check run log file %s for details" %(run_log_file)
 
-        # Check for results.
-        stats_out_file = extract_out_folder + "/extract_stats.out"
-        assert os.path.exists(stats_out_file), "missing extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" %(extract_out_folder, run_log_file)
-        extr_stats_dic = hoodlib.read_settings_into_dic(stats_out_file, check=False)
-        assert extr_stats_dic, "no stats extracted from extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" %(extract_out_folder, run_log_file)
-        c_intergen_sites = int(extr_stats_dic["c_intergen_sites"])
-        c_intron_sites = int(extr_stats_dic["c_intron_sites"])
-        c_exon_sites_tc = int(extr_stats_dic["c_exon_sites_tc"])
-        c_exon_sites_merged_tc = int(extr_stats_dic["c_exon_sites_merged_tc"])
-        c_exon_sites_gc = int(extr_stats_dic["c_exon_sites_gc"])
-        c_all_sites = c_intergen_sites + c_intron_sites + c_exon_sites_gc + c_exon_sites_tc
-        c_exonic_sites = int(extr_stats_dic["c_exonic_sites"])
-        c_exb_sites = int(extr_stats_dic["c_exb_sites"])
+            # Check for results.
+            stats_out_file = extract_out_folder + "/extract_stats.out"
+            assert os.path.exists(stats_out_file), "missing extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" %(extract_out_folder, run_log_file)
+            extr_stats_dic = hoodlib.read_settings_into_dic(stats_out_file, check=False)
+            assert extr_stats_dic, "no stats extracted from extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" %(extract_out_folder, run_log_file)
+            c_intergen_sites = int(extr_stats_dic["c_intergen_sites"])
+            c_intron_sites = int(extr_stats_dic["c_intron_sites"])
+            c_exon_sites_tc = int(extr_stats_dic["c_exon_sites_tc"])
+            c_exon_sites_merged_tc = int(extr_stats_dic["c_exon_sites_merged_tc"])
+            c_exon_sites_gc = int(extr_stats_dic["c_exon_sites_gc"])
+            c_all_sites = c_intergen_sites + c_intron_sites + c_exon_sites_gc + c_exon_sites_tc
+            c_exonic_sites = int(extr_stats_dic["c_exonic_sites"])
+            c_exb_sites = int(extr_stats_dic["c_exb_sites"])
 
-        # Percentage of exonic sites.
-        perc_exonic_sites = "0.0 %"
-        if c_exonic_sites and c_all_sites:
-            perc_exonic_sites = "%.2f " %((c_exonic_sites / c_all_sites) * 100) + "%"
-        # Percentage of spliced context sites.
-        perc_exonic_tc_sites = "0.0 %"
-        if c_exon_sites_tc and c_exonic_sites:
-            perc_exonic_tc_sites = "%.2f " %((c_exon_sites_tc / c_exonic_sites) * 100) + "%"
-        # Percentage of exon border sites (connected by ISR reads).
-        perc_exb_sites = "0.0 %"
-        if c_exb_sites and c_exon_sites_tc:
-            perc_exb_sites = "%.2f " %((c_exb_sites / c_exon_sites_tc) * 100) + "%"
+            # Percentage of exonic sites.
+            perc_exonic_sites = "0.0 %"
+            if c_exonic_sites and c_all_sites:
+                perc_exonic_sites = "%.2f " %((c_exonic_sites / c_all_sites) * 100) + "%"
+            # Percentage of spliced context sites.
+            perc_exonic_tc_sites = "0.0 %"
+            if c_exon_sites_tc and c_exonic_sites:
+                perc_exonic_tc_sites = "%.2f " %((c_exon_sites_tc / c_exonic_sites) * 100) + "%"
+            # Percentage of exon border sites (connected by ISR reads).
+            perc_exb_sites = "0.0 %"
+            if c_exb_sites and c_exon_sites_tc:
+                perc_exb_sites = "%.2f " %((c_exb_sites / c_exon_sites_tc) * 100) + "%"
 
 
-        print("dataset:  %s" %(dataset_id))
-        print("# of all sites                                    %i" %(c_all_sites))
-        print("# of intronic sites:                              %i" %(c_intron_sites))
-        print("# of intergenic sites:                            %i" %(c_intergen_sites))
-        print("# of exonic sites (assigned genome context):      %i" %(c_exon_sites_gc))
-        print("# of exonic sites (assigned transcript context):  %i" %(c_exon_sites_tc))
-        print("# of sites after merging exon border sites:       %i" %(c_exon_sites_merged_tc))
+            print("dataset:  %s" %(dataset_id))
+            print("# of all sites                                    %i" %(c_all_sites))
+            print("# of intronic sites:                              %i" %(c_intron_sites))
+            print("# of intergenic sites:                            %i" %(c_intergen_sites))
+            print("# of exonic sites (assigned genome context):      %i" %(c_exon_sites_gc))
+            print("# of exonic sites (assigned transcript context):  %i" %(c_exon_sites_tc))
+            print("# of sites after merging exon border sites:       %i" %(c_exon_sites_merged_tc))
 
-        print("Percentage (# exonic sites / # all input sites):\n%s" %(perc_exonic_sites))
-        print("Percentage (# transcript context sites / # exonic sites):\n%s" %(perc_exonic_tc_sites))
-        print("Percentage (# exon border sites / # transcript context sites):\n%s" %(perc_exb_sites))
+            print("Percentage (# exonic sites / # all input sites):\n%s" %(perc_exonic_sites))
+            print("Percentage (# transcript context sites / # exonic sites):\n%s" %(perc_exonic_tc_sites))
+            print("Percentage (# exon border sites / # transcript context sites):\n%s" %(perc_exb_sites))
 
-        print("")
+            print("")
+    else:
+        extract_commands = []
+        for dataset_id in bed_files_dic:
+            bed_file = bed_files_dic[dataset_id]
+            bam_files_list = bam_files_dic[dataset_id]
+            bam_files_str = ' '.join(bam_files_list)
+
+            c_in_sites = hoodlib.count_file_rows(bed_file, nr_cols=6)
+            assert c_in_sites, "--in BED file \"%s\" contains no 6-column BED regions. Make sure to provide --in BED file with genomic regions in 6-column format" % (
+                bed_file)
+
+            # Peakhood extract output folder.
+            extract_out_folder = args.out_folder + "/" + dataset_id + "_extract_out"
+            extract_folders_list.append(extract_out_folder)
+
+            # Construct peakhood extract command.
+            extract_cmd = "peakhood extract --in " + bed_file + " --bam " + bam_files_str + " --gtf " + args.in_gtf + " --gen " + args.in_2bit + " --out " + extract_out_folder
+            extract_cmd += extract_params
+            if args.new_ids:
+                extract_cmd += " --new-site-id " + dataset_id
+
+            # Run peakhood extract.
+            import subprocess
+
+            print("Extract transcript context sites for dataset %s ... " % (
+                dataset_id))
+            extract_commands.append((extract_out_folder, extract_cmd, dataset_id))
+        with Pool(processes=args.threads) as pool:
+            to_print = pool.starmap(extract_multicore_wrapper, extract_commands)
+        for entry in to_print:
+            print(entry)
 
 
     """

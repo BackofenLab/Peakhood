@@ -94,6 +94,7 @@ def default_batch(temp_batch, gtf_file, two_bit_file):
         seq_ext=0,
         seq_ext_mode=1,
         which="batch",
+        threads=2
     )
     return args
 
@@ -124,7 +125,15 @@ def _compare_folders(expected_folder, test_folder):
                         assert test_line in test_set
 
 
-def test_peakhood_batch(default_batch):
+@pytest.mark.parametrize(
+    "threads",
+    [
+        (2),
+        (1)
+    ]
+)
+def test_peakhood_batch(threads, default_batch):
+    default_batch.threads = threads
     peakhood.main_batch(default_batch)
     expeted = os.path.join(
         os.path.dirname(__file__), "expected", "batch_expected"

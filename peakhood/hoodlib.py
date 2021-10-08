@@ -8074,3 +8074,68 @@ def print_some_banner():
 
 
 ################################################################################
+
+def extract_multicore_wrapper(extract_out_folder, extract_cmd, dataset_id):
+    output = subprocess.getoutput(extract_cmd)
+
+    # Save output.
+    run_log_file = extract_out_folder + "/run.peakhood_extract.log"
+    RUNLOGOUT = open(run_log_file, "w")
+    RUNLOGOUT.write(output)
+    RUNLOGOUT.close()
+
+    # Check for errors in log file.
+    error_found = check_string_in_file(run_log_file, "AssertionError")
+    if error_found:
+        print(output)
+    assert not error_found, "An assertion error was raised during this peakhood extract run, check run log file %s for details" % (
+        run_log_file)
+
+    # Check for results.
+    stats_out_file = extract_out_folder + "/extract_stats.out"
+    assert os.path.exists(
+        stats_out_file), "missing extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" % (
+    extract_out_folder, run_log_file)
+    extr_stats_dic = read_settings_into_dic(stats_out_file,
+                                                    check=False)
+    assert extr_stats_dic, "no stats extracted from extract_stats.out file inside folder %s. Probably this peakhood extract run produced errors, check run log file %s" % (
+    extract_out_folder, run_log_file)
+    c_intergen_sites = int(extr_stats_dic["c_intergen_sites"])
+    c_intron_sites = int(extr_stats_dic["c_intron_sites"])
+    c_exon_sites_tc = int(extr_stats_dic["c_exon_sites_tc"])
+    c_exon_sites_merged_tc = int(extr_stats_dic["c_exon_sites_merged_tc"])
+    c_exon_sites_gc = int(extr_stats_dic["c_exon_sites_gc"])
+    c_all_sites = c_intergen_sites + c_intron_sites + c_exon_sites_gc + c_exon_sites_tc
+    c_exonic_sites = int(extr_stats_dic["c_exonic_sites"])
+    c_exb_sites = int(extr_stats_dic["c_exb_sites"])
+
+    # Percentage of exonic sites.
+    perc_exonic_sites = "0.0 %"
+    if c_exonic_sites and c_all_sites:
+        perc_exonic_sites = "%.2f " % (
+                    (c_exonic_sites / c_all_sites) * 100) + "%"
+    # Percentage of spliced context sites.
+    perc_exonic_tc_sites = "0.0 %"
+    if c_exon_sites_tc and c_exonic_sites:
+        perc_exonic_tc_sites = "%.2f " % (
+                    (c_exon_sites_tc / c_exonic_sites) * 100) + "%"
+    # Percentage of exon border sites (connected by ISR reads).
+    perc_exb_sites = "0.0 %"
+    if c_exb_sites and c_exon_sites_tc:
+        perc_exb_sites = "%.2f " % (
+                    (c_exb_sites / c_exon_sites_tc) * 100) + "%"
+
+    dataset_print = ""
+    dataset_print += "dataset:  %s\n" % (dataset_id)
+    dataset_print += "# of all sites                                    %i\n" % (c_all_sites)
+    dataset_print += "# of intronic sites:                              %i\n" %(c_intron_sites)
+    dataset_print += "# of intergenic sites:                            %i\n" %(c_intergen_sites)
+    dataset_print += "# of exonic sites (assigned genome context):      %i\n" %(c_exon_sites_gc)
+    dataset_print += "# of exonic sites (assigned transcript context):  %i\n" %(c_exon_sites_tc)
+    dataset_print += "# of sites after merging exon border sites:       %i\n" %(c_exon_sites_merged_tc)
+    dataset_print += "Percentage (# exonic sites / # all input sites):\n%s\n" %(perc_exonic_sites)
+    dataset_print += "Percentage (# transcript context sites / # exonic sites):\n%s\n" %(perc_exonic_tc_sites)
+    dataset_print += "Percentage (# transcript context sites / # exonic sites):\n%s\n" %(perc_exonic_tc_sites)
+    dataset_print += "Percentage (# exon border sites / # transcript context sites):\n%s\n\n" %(perc_exb_sites)
+    return dataset_print
+
