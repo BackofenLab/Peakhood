@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         conda create -n peakhood python=3.8 -c conda-forge -c bioconda
+        export PATH="/usr/share/miniconda/bin:$PATH"
         conda activate peakhood
         conda install -c conda-forge seaborn
         conda install -c conda-forge markdown
