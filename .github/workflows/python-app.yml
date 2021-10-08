@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
@@ -26,8 +26,8 @@ jobs:
         conda create -n peakhood python=3.9 -c conda-forge -c bioconda
         export PATH="/usr/share/miniconda/bin:$PATH"
         source activate peakhood
-        conda install -c bioconda ucsc-twobitinfo=332
-        conda install -c bioconda ucsc-twobittofa=332
+        conda install -c bioconda ucsc-twobitinfo
+        conda install -c bioconda ucsc-twobittofa
         conda install -c conda-forge seaborn
         conda install -c conda-forge markdown
         conda install -c bioconda bedtools
