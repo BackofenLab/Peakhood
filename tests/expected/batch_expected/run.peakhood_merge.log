@@ -1,0 +1,57 @@
+
+                               $$\
+                               $$ |
+  $$$$$$\   $$$$$$\   $$$$$$\  $$ |  $$\
+ $$  __$$\ $$  __$$\  \____$$\ $$ | $$  |
+ $$ /  $$ |$$$$$$$$ | $$$$$$$ |$$$$$$  /
+ $$ |  $$ |$$   ____|$$  __$$ |$$  _$$<
+ $$$$$$$  |\$$$$$$$\ \$$$$$$$ |$$ | \$$\
+ $$  ____/  \_______| \_______|\__|  \__|
+ $$ |                                $$\
+ $$ |                                $$ |
+ $$$$$$$\   $$$$$$\   $$$$$$\   $$$$$$$ |
+ $$  __$$\ $$  __$$\ $$  __$$\ $$  __$$ |
+ $$ |  $$ |$$ /  $$ |$$ /  $$ |$$ /  $$ |
+ $$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |
+ $$ |  $$ |\$$$$$$  |\$$$$$$  |\$$$$$$$ |
+ \__|  \__| \______/  \______/  \_______|
+
+
+Running for you in MERGE mode ... 
+Processing --in folder tests/bla_Ensembl/SERBP1_K562_extract_out ... 
+Processing --in folder tests/bla_Ensembl/SUPV3L1_K562_extract_out ... 
+Collect sites on same transcripts ... 
+Associate transcript IDs to gene IDs ... 
+Output all transcripts with sites ... 
+Output selected transcripts with sites ... 
+Output site pairs on all transcripts  ... 
+Output site pairs on selected transcripts  ... 
+Output all transcript regions (12-column BED) ... 
+Output all transcript sequences (FASTA) ... 
+# of all transcripts with sites:          166
+# of selected transcripts with sites:     78
+# of site pairs on all transcripts:         199
+# of site pairs (from different datasets):  2
+# of site pairs on selected transcripts:    57
+# of site pairs (from different datasets):  0
+Generate HTML report ... 
+
+OUTPUT FILES
+============
+
+Merged dataset statistics report HTML:
+tests/bla_Ensembl/report.peakhood_merge.html
+Exonic site stats for each dataset TSV:
+tests/bla_Ensembl/exonic_site_set_stats.tsv
+All transcript regions BED:
+tests/bla_Ensembl/all_transcript_regions.bed
+All transcript sequences FASTA:
+tests/bla_Ensembl/all_transcript_sequences.fa
+All transcripts with sites TSV:
+tests/bla_Ensembl/transcripts_with_sites.all_tr.tsv
+Selected transcripts with sites TSV:
+tests/bla_Ensembl/transcripts_with_sites.sel_tr.tsv
+Site pairs on all transcripts TSV:
+tests/bla_Ensembl/sites_on_same_transcripts.all_tr.tsv
+Site pairs on selected transcripts TSV:
+tests/bla_Ensembl/sites_on_same_transcripts.sel_tr.tsv
