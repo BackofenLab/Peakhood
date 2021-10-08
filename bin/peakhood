@@ -4942,7 +4942,7 @@ def main_batch(args):
         extract_params += " --no-biotype-filter "
     else:
         if args.list_tbt_filter_ids:
-            list_tbt_filter_ids_str = ' '.join(list_tbt_filter_ids)
+            list_tbt_filter_ids_str = ' '.join(args.list_tbt_filter_ids)
             extract_params += " --tbt-filter-ids " + list_tbt_filter_ids_str
 
     if args.no_tis_filter:
