@@ -1,0 +1,151 @@
+<p><head>
+<title>Peakhood - Merge Extracted Datasets Report</title>
+</head></p>
+<p><img src="html_plots/logo.png" alt="ph_logo"
+    title="ph_logo" width="675" /></p>
+<p><body style="font-family:sans-serif" link="#007af4" vlink="#007af4" alink="#007af4"></p>
+
+<h1>Merge Extracted Datasets Report</h1>
+<p>List of available statistics generated
+by Peakhood (peakhood merge):</p>
+<ul>
+<li><a href="#merge-stats">Merged dataset statistics</a></li>
+<li><a href="#exon-perc-stats">Site region type statistics</a></li>
+<li><a href="#site-length-plot">Input site length distribution</a></li>
+<li><a href="#exon-perc-plot">Exonic site percentages distribution</a></li>
+</ul>
+<h2 id="merge-stats">Merged dataset statistics</h2>
+<p><strong>Table:</strong>
+Merged dataset statistics, listing over all datasets: the number of
+transcripts containing sites, the number of selected transcripts (most likely
+transcripts from peakhood extract) with sites, the number of site pairs on
+all transcripts (same and different datasets / RBPs), the number of site pairs
+from different datasets (different RBPs), the number of site pairs
+on the selected transcripts (same and different RBPs), and the number of
+site pairs on the selected transcripts (different RBPs).</p>
+<table>
+<thead>
+<tr>
+<th align="center">&nbsp; Description &nbsp;</th>
+<th align="center">&nbsp; &nbsp; Count &nbsp; &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"># all transcripts with sites</td>
+<td align="center">166</td>
+</tr>
+<tr>
+<td align="center"># selected transcripts with sites</td>
+<td align="center">78</td>
+</tr>
+<tr>
+<td align="center"># site pairs on all transcripts</td>
+<td align="center">199</td>
+</tr>
+<tr>
+<td align="center"># site pairs (from different datasets)</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center"># site pairs on selected transcripts</td>
+<td align="center">57</td>
+</tr>
+<tr>
+<td align="center"># site pairs (from different datasets)</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="exon-perc-stats">Site region type statistics</h2>
+<p><strong>Table:</strong>
+Site region type statistics. For each input dataset,
+different region types with corresponding site numbers are given:
+number of all dataset sites,
+number of intronic sites, number of intergenic sites,
+number of exonic sites with assigned genomic context,
+number of exonic sites with assigned transcript context (TC),
+number of exonic sites with assigned transcript context after merging
+adjacent exon border sites (TCM),
+number of exonic sites at exon borders connected by intron-spanning reads (before merging),
+percentage of exonic sites (exonic sites / all sites), and
+percentage of exonic transcript context sites (TC sites / all exonic sites).</p>
+<table>
+<thead>
+<tr>
+<th align="center">&nbsp; Dataset &nbsp;</th>
+<th align="center"># all sites</th>
+<th align="center"># intronic</th>
+<th align="center"># intergenic</th>
+<th align="center"># exonic (GC)</th>
+<th align="center"># exonic (TC)</th>
+<th align="center"># exonic (TCM)</th>
+<th align="center"># exon border</th>
+<th align="center">% exon / all</th>
+<th align="center">% TC / exonic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">SERBP1_K562</td>
+<td align="center">125</td>
+<td align="center">22</td>
+<td align="center">0</td>
+<td align="center">7</td>
+<td align="center">96</td>
+<td align="center">92</td>
+<td align="center">6</td>
+<td align="center">82.40</td>
+<td align="center">93.20</td>
+</tr>
+<tr>
+<td align="center">SUPV3L1_K562</td>
+<td align="center">48</td>
+<td align="center">19</td>
+<td align="center">0</td>
+<td align="center">10</td>
+<td align="center">19</td>
+<td align="center">19</td>
+<td align="center">0</td>
+<td align="center">60.42</td>
+<td align="center">65.52</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="site-length-plot">Input site length distribution</h2>
+<p>Input site length distribution for every --in input dataset,
+after pre-merging of book-ended and overlapping input sites (if set)
+and pre-filtering (if set, e.g. by score or length).
+Note that set --pre-merge leads to increased lengths if there are adjacent
+or overlapping sites. Moreover, set --max-len (default 200) limits the
+maximum site length, but this can increase again if --pre-merge is set
+(since --pre-merge is applied after --max-len filtering).</p>
+<p><img src="html_plots/set_lengths_plot.png" alt="Site length distribution"
+title="Site length distribution" width="700" /></p>
+<p><strong>Figure:</strong> Input site length distribution for every --in input dataset.</p>
+<p>&nbsp;</p>
+<h2 id="exon-perc-plot">Exonic site percentages distribution</h2>
+<p>Percentages of exonic sites (exonic sites / all sites), assigned
+transcript context (TC) sites (TC / exonic sites), and
+paired exonic sites at exon borders (EXBS) (EXBS / TC),
+for all --in input datasets. Two sites at exon borders form a pair
+if they are connected via intron-spanning reads,
+and thus likely form one single site instead of two separate.
+Pair sites at exon borders consequently
+get merged by Peakhood, so usually only 1 of 2 sites remains.
+Moreover, if there is &gt; 1 connection for a set of exon border sites,
+Peakhood only keeps the one featuring the most intron-spanning reads.</p>
+<p><img src="html_plots/exon_perc_plot.png" alt="Exonic site percentages distribution"
+title="Exonic site percentages distribution" width="800" /></p>
+<p><strong>Figure:</strong> Percentages of exonic sites (exonic sites / all sites),
+assigned transcript context (TC) sites (TC / exonic sites),
+and exonic sites at exon borders connected by intron-spanning reads
+(EXBS) (EXBS / TC),
+for all --in input datasets. The higher the first two percentages,
+the more likely the RBP associated to the dataset binds to a
+spliced context (introns removed).</p>
+<p>&nbsp;</p>

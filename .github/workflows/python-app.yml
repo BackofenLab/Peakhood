@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python application
+
+on:
+  push:
+    branches: [ main, tests ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        conda create -n peakhood python=3.9 -c conda-forge -c bioconda
+        export PATH="/usr/share/miniconda/bin:$PATH"
+        source activate peakhood
+        conda install -c bioconda ucsc-twobitinfo
+        conda install -c bioconda ucsc-twobittofa
+        conda install -c conda-forge seaborn
+        conda install -c conda-forge markdown
+        conda install -c bioconda bedtools
+        conda install -c bioconda samtools
+        python -m pip install . --ignore-installed --no-deps -vv --use-feature=in-tree-build
+        pip install pytest requests
+        conda list
+    - name: Test with pytest
+      run: |
+        export PATH="/usr/share/miniconda/bin:$PATH"
+        source activate peakhood
+        pytest

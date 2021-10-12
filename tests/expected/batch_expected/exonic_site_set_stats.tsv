@@ -1,0 +1,3 @@
+dataset_id	c_all_sites	c_intronic_sites	c_intergenic_sites	c_exonic_sites_gc	c_exonic_sites_tc	c_exonic_sites_tc_exb_sites_merged	c_exb_isr_sites	perc_exonic_sites_of_all	perc_exonic_sites_tc_of_all_exonic	perc_exb_isr_sites_of_tc_exonic
+SERBP1_K562	125	22	0	7	96	92	6	82.40	93.20	6.25
+SUPV3L1_K562	48	19	0	10	19	19	0	60.42	65.52	0.00

@@ -1,0 +1,132 @@
+
+                               $$\
+                               $$ |
+  $$$$$$\   $$$$$$\   $$$$$$\  $$ |  $$\
+ $$  __$$\ $$  __$$\  \____$$\ $$ | $$  |
+ $$ /  $$ |$$$$$$$$ | $$$$$$$ |$$$$$$  /
+ $$ |  $$ |$$   ____|$$  __$$ |$$  _$$<
+ $$$$$$$  |\$$$$$$$\ \$$$$$$$ |$$ | \$$\
+ $$  ____/  \_______| \_______|\__|  \__|
+ $$ |                                $$\
+ $$ |                                $$ |
+ $$$$$$$\   $$$$$$\   $$$$$$\   $$$$$$$ |
+ $$  __$$\ $$  __$$\ $$  __$$\ $$  __$$ |
+ $$ |  $$ |$$ /  $$ |$$ /  $$ |$$ /  $$ |
+ $$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |
+ $$ |  $$ |\$$$$$$  |\$$$$$$  |\$$$$$$$ |
+ \__|  \__| \______/  \______/  \_______|
+
+
+Running for you in EXTRACT mode ... 
+Get chromosome IDs from --gen ... 
+# --in sites pre-filtering:      154
+# --in sites post-filtering:     154
+--pre-merge set. Merge --in sites ... 
+# --in sites after pre-merging:  125
+Check minus-strand exon order in --gtf ... 
+Extract transcript regions from --gtf ... 
+Get transcript regions overlapping with --in sites ... 
+Transcript regions overlapping with --in sites:  496
+--in sites overlapping with transcript regions:  125
+Get --in sites not overlapping with transcript regions ... 
+--in sites not overlapping with transcript regions:  0
+Extract unique exon regions from transcript regions ... 
+# rejected transcript IDs (biotype filter):  146
+Get --in regions overlapping with exon regions ... 
+Get genomic site sequences ... 
+Processing --bam files ... 
+Get intronic sites for TIS filtering ... 
+Get --in regions overlapping with intron regions ... 
+# of intronic sites for TIS filtering:  22
+Merge transcript regions BED ... 
+# of exonic sites:                103
+# transcripts with exonic sites:  208
+Extract BAM reads from transcript regions containing exonic sites ... 
+# of overlapping BAM reads:  17062
+Get intron-spanning read stats ... 
+Get isolated single exon genes ... 
+# of isolated single exon genes:  15
+Remove low-evidence overlapping genes ... 
+# of overlapping genes to remove:  7
+# of associated transcripts:       7
+Get exon-intron coverage of exonic site transcripts ... 
+Concatenate ISR reads BED to transcript reads BED ... 
+Output transcript regions in 12-column BED format ... 
+Get neighboring exon ISR counts ... 
+Remove exons fully overlapping with ISR containing introns ... 
+# of NEXT IDs removed due to full overlap with ISR introns:  3
+Check transcript context for each exonic site ... 
+# exonic sites assigned to genomic context (TRS filter):      1
+# exonic sites assigned to genomic context (EIR WT filter):   2
+# exonic sites assigned to genomic context (EIBR WT filter):  1
+# exonic sites assigned to genomic context (EIBR filter):     3
+# of overlapping transcripts > --min-ei-ratio:    149
+# of exonic sites (assigned transcript context):  96
+# of exonic sites (assigned genome context):      7
+Get adjacent sites at exon borders ... 
+# adjacent sites at exon borders:  7
+Exon border site groups found ... 
+# of exon border groups with > 2 members:        1
+# of exonic sites removed (exon border groups):  1
+# of exonic sites remaining:                     95
+Select most likely transcript for each transcript context site ... 
+F1 filter list: ['TSC']
+F2 filter list: ['EIR', 'ISRN', 'ISR', 'ISRFC', 'SEO', 'FUCO', 'TCOV']
+# exon border sites:                  6
+# merged exon border sites:           3
+# transcript context sites:           242
+# selected transcript context sites:  92
+Get transcript sequences from --gtf and --gen ... 
+Output transcript sequences ... 
+# of intronic sites:                  22
+Calculate and output NEXT EIR EIBR stats ... 
+
+Percentage (# exonic sites / # all input sites):
+82.40 %
+Percentage (# transcript context sites / # exonic sites):
+93.20 %
+Percentage (# exon border sites / # transcript context sites):
+6.25 %
+
+Generate HTML report ... 
+
+OUTPUT FILES
+============
+
+Context extraction statistics report HTML:
+tests/bla_Ensembl/SERBP1_K562_extract_out/report.peakhood_extract.html
+All sites + assigned region type information TSV:
+tests/bla_Ensembl/SERBP1_K562_extract_out/all_sites.tsv
+
+EXONIC SITES ASSIGNED TO TRANSCRIPT CONTEXT:
+
+All transcript context site-transcript combinations BED:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.all_tr.bed
+All transcript context site-transcript combinations FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.all_tr.fa
+Selected transcript context site-transcript combinations BED:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.sel_tr.bed
+Selected transcript context site-transcript combinations FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.sel_tr.fa
+Assigned transcript context site statistics TSV:
+tests/bla_Ensembl/SERBP1_K562_extract_out/transcript_context_site_stats.tsv
+Associated full transcript sequences FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/transcript_sequences.fa
+Transcript context sites on genome BED:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.gen.bed
+Transcript context sites on genome FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.tr_con.gen.fa
+
+EXONIC SITES ASSIGNED TO GENOMIC CONTEXT:
+
+Exonic sites assigned to genomic context BED:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.gen_con.bed
+Exonic sites assigned to genomic context FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/exonic_sites.gen_con.fa
+
+INTRONIC SITES:
+
+Intronic sites BED:
+tests/bla_Ensembl/SERBP1_K562_extract_out/intronic_sites.bed
+Intronic sites FASTA:
+tests/bla_Ensembl/SERBP1_K562_extract_out/intronic_sites.fa

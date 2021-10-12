@@ -1,0 +1,289 @@
+<p><head>
+<title>Peakhood - Context Extraction Report</title>
+</head></p>
+<p><img src="html_plots/logo.png" alt="ph_logo"
+    title="ph_logo" width="650" /></p>
+<p><body style="font-family:sans-serif" link="#007af4" vlink="#007af4" alink="#007af4"></p>
+
+<h1>Context Extraction Report</h1>
+<p>List of available context extraction statistics generated
+by Peakhood (peakhood extract):</p>
+<ul>
+<li><a href="#site-length-stats">Input site length statistics</a></li>
+<li><a href="#site-length-plot">Input site length distribution</a></li>
+<li><a href="#site-region-stats">Site region type statistics</a></li>
+<li><a href="#ei-ratio-stats">Exon-intron coverage ratio statistics</a></li>
+<li><a href="#ei-ratio-plot">Exon-intron coverage ratio distribution</a></li>
+<li><a href="#eib-ratio-stats">Exon-intron border coverage ratio statistics</a></li>
+<li><a href="#eib-ratio-plot">Exon-intron border coverage ratio distribution</a></li>
+<li><a href="#rep-reg-stats">Repeat region statistics</a></li>
+</ul>
+<h2 id="site-length-stats">Input site length statistics</h2>
+<p><strong>Table:</strong> Input site length statistics
+(min, max, mean, and median length) in nucleotides (nt).</p>
+<table class="sortable">
+<thead>
+<tr>
+<th align="center">Attribute</th>
+<th align="center">&nbsp; Value &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"># sites</td>
+<td align="center">48</td>
+</tr>
+<tr>
+<td align="center">min site length</td>
+<td align="center">11</td>
+</tr>
+<tr>
+<td align="center">max site length</td>
+<td align="center">161</td>
+</tr>
+<tr>
+<td align="center">mean site length</td>
+<td align="center">56.5</td>
+</tr>
+<tr>
+<td align="center">median site length</td>
+<td align="center">52</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="site-length-plot">Input site length distribution</h2>
+<p>Input site length distribution, after pre-merging of book-ended and
+overlapping input sites (if set)
+and pre-filtering (if set, e.g. by score or length).
+Note that set --pre-merge leads to increased lengths if there are adjacent
+or overlapping sites. Moreover, set --max-len (default 200) limits the
+maximum site length, but this can increase again if --pre-merge is set
+(since --pre-merge is applied after --max-len filtering).</p>
+<p><img src="html_plots/set_lengths_plot.png" alt="Site length distribution"
+title="Site length distribution" width="500" /></p>
+<p><strong>Figure:</strong> Input site length distribution (after pre-filtering and-pre-merging sites).</p>
+<p>&nbsp;</p>
+<h2 id="site-region-stats">Site region type statistics</h2>
+<p><strong>Table:</strong>
+Assigned site region type statistics. Exonic sites can be either assigned to
+transcript context (TC) or genomic context (GC), depending on the read information
+in the input BAM file. In addition, transcript context site count with
+merged exon border sites is given (MEXB).
+Intronic sites are sites with insufficient
+(see --min-exon-overlap, default &gt;= 90 percent) or no overlap with any
+exonic region from the input GTF file. Intergenic sites do not overlap
+with any transcript regions from the input GTF file. Depending on which
+pipeline was used to determine the input CLIP-seq peak regions, there might
+be little or no intergenic sites due to pre-filtering for gene regions.</p>
+<table class="sortable">
+<thead>
+<tr>
+<th align="center">&nbsp; Region type &nbsp;</th>
+<th align="center">&nbsp; &nbsp; Count &nbsp; &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">exonic (GC)</td>
+<td align="center">10</td>
+</tr>
+<tr>
+<td align="center">exonic (TC)</td>
+<td align="center">19</td>
+</tr>
+<tr>
+<td align="center">exonic (TC) MEXB</td>
+<td align="center">19</td>
+</tr>
+<tr>
+<td align="center">intronic</td>
+<td align="center">19</td>
+</tr>
+<tr>
+<td align="center">intergenic</td>
+<td align="center">0</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="ei-ratio-stats">Exon-intron coverage ratio statistics</h2>
+<p><strong>Table:</strong>
+Exon-intron coverage ratios statistics for unique exon regions (# unique exons: 44)
+containing CLIP-seq sites. A unique exon region can include several annotated
+exon regions, since GTF files usually contain exons with different IDs but
+identical regions.
+The unique exon region ratio is the average ratio of all exon regions with
+the same coordinates as the unique exon region.
+The ratio of an exon region is calculated
+by dividing the exon coverage (reads / region length) through the coverage
+of the neighboring intron(s). In case of two introns, the average coverage
+of the two introns is used as the divisor. In case of no introns, a fixed
+value above the threshold is assigned.</p>
+<table class="sortable">
+<thead>
+<tr>
+<th align="center">&nbsp; Attribute &nbsp;</th>
+<th align="center">&nbsp; &nbsp; Value &nbsp; &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"># unique exons</td>
+<td align="center">44</td>
+</tr>
+<tr>
+<td align="center">min ratio</td>
+<td align="center">0.2304</td>
+</tr>
+<tr>
+<td align="center">max ratio</td>
+<td align="center">44852.9412</td>
+</tr>
+<tr>
+<td align="center">mean ratio</td>
+<td align="center">2192.7430</td>
+</tr>
+<tr>
+<td align="center">stdev ratio</td>
+<td align="center">7191.6957</td>
+</tr>
+<tr>
+<td align="center">median ratio</td>
+<td align="center">3.8832</td>
+</tr>
+<tr>
+<td align="center">25th percentile ratio</td>
+<td align="center">1.3048</td>
+</tr>
+<tr>
+<td align="center">50th percentile ratio</td>
+<td align="center">3.8832</td>
+</tr>
+<tr>
+<td align="center">75th percentile ratio</td>
+<td align="center">183.3042</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="ei-ratio-plot">Exon-intron coverage ratio distribution</h2>
+<p>This plot shows the distribution of exon-intron coverage ratios for
+unique exon regions containing CLIP-seq sites.</p>
+<p><img src="html_plots/ei_ratio_density_plot.png" alt="ei_raio_plot"
+title="Exon-intron ratio distribution" width="650" /></p>
+<p><strong>Figure:</strong> Distribution of exon-intron ratios (exon coverage divided by
+surrounding intron coverage) for unique exon regions containing CLIP-seq sites.
+To prevent suboptimal scaling due to outliers, ratios are plotted only up
+to the 95th percentile ratio.</p>
+<p>&nbsp;</p>
+<h2 id="eib-ratio-stats">Exon-intron border coverage ratio statistics</h2>
+<p><strong>Table:</strong>
+Exon-intron border coverage ratio statistics for unique exon regions
+containing CLIP-seq sites. A unique exon region can include several annotated
+exon regions, since GTF files usually contain exons with different IDs but
+identical regions. Note that not all unique exon regions might be considered,
+since exon-intron borders with small read coverages are not considered.
+The ratio is calculated for each exon-intron border, taking a small border
+region on the intron as well as on the exon, and calculating the coverage ratio
+between the two. This is done for both exon ends, and the average or the
+ratio with more reads is returned for each exon region. These ratios are then
+merged to one ratio for each unique exon region.</p>
+<table class="sortable">
+<thead>
+<tr>
+<th align="center">&nbsp; Attribute &nbsp;</th>
+<th align="center">&nbsp; &nbsp; Value &nbsp; &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"># considered exons</td>
+<td align="center">28</td>
+</tr>
+<tr>
+<td align="center">min ratio</td>
+<td align="center">0.5833</td>
+</tr>
+<tr>
+<td align="center">max ratio</td>
+<td align="center">118.7968</td>
+</tr>
+<tr>
+<td align="center">mean ratio</td>
+<td align="center">11.4109</td>
+</tr>
+<tr>
+<td align="center">stdev ratio</td>
+<td align="center">23.6623</td>
+</tr>
+<tr>
+<td align="center">median ratio</td>
+<td align="center">2.4139</td>
+</tr>
+<tr>
+<td align="center">25th percentile ratio</td>
+<td align="center">1.1097</td>
+</tr>
+<tr>
+<td align="center">50th percentile ratio</td>
+<td align="center">2.4139</td>
+</tr>
+<tr>
+<td align="center">75th percentile ratio</td>
+<td align="center">10.2468</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
+<h2 id="ei-ratio-plot">Exon-intron border coverage ratio distribution</h2>
+<p>This plot shows the distribution of exon-intron border coverage ratios for
+ unique exon regions containing CLIP-seq sites.</p>
+<p><img src="html_plots/eib_ratio_density_plot.png" alt="ei_raio_plot"
+title="Exon-intron border ratio distribution" width="650" /></p>
+<p><strong>Figure:</strong> Distribution of exon-intron border ratios (exon border coverages divided by
+adjacent intron border coverages) for unique exon regions containing CLIP-seq sites.
+To prevent suboptimal scaling due to outliers, ratios are plotted only up
+to the 95th percentile ratio.</p>
+<p>&nbsp;</p>
+<h2 id="rep-reg-stats">Repeat region statistics</h2>
+<p><strong>Table:</strong>
+Repeat region content statistics for different region types.
+The percentage of repeat regions found in each region type set is given.</p>
+<table class="sortable">
+<thead>
+<tr>
+<th align="center">&nbsp; Region type &nbsp;</th>
+<th align="center">&nbsp; Count &nbsp;</th>
+<th align="center">&nbsp; &nbsp; Percentage &nbsp; &nbsp;</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center">exonic (GC)</td>
+<td align="center">10</td>
+<td align="center">6.685</td>
+</tr>
+<tr>
+<td align="center">exonic (TC)</td>
+<td align="center">19</td>
+<td align="center">0.000</td>
+</tr>
+<tr>
+<td align="center">intronic</td>
+<td align="center">19</td>
+<td align="center">30.351</td>
+</tr>
+<tr>
+<td align="center">intergenic</td>
+<td align="center">0</td>
+<td align="center">0.000</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp;
+&nbsp;</p>
