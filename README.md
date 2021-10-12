@@ -376,11 +376,20 @@ NOTE that if the BAM files have already been merged and filtered by R1 or R2 rea
 peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --report --new-ids --pre-merge
 ```
 
+Peakhood also supports parallel batch processing (from v0.3 on), to speed up batch processing. This can be evoked with the command `--threads` plus the number of threads to use. This specifies the maximum number of extraction jobs to run in parallel. So if there are 3 input datasets and `--threads 2` is specified, a maximum of two datasets will be processed in parallel:
+
+```
+peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --report --new-ids --pre-merge --threads 2
+```
+
+Note that parallel processing increases the memory consumption, so if you are experiencing memory problems during parallel batch processing, try to decrease `--threads` (`--threads 1` equals the default setting, i.e. sequential processing).
+
+
+
 
 ## Documentation
 
-
-This documentation provides further details on Peakhood (version 0.2), divided into the following sections:
+This documentation provides further details on Peakhood (version 0.3), divided into the following sections:
 the different [program modes](#program-modes) of Peakhood, how [site context selection](#site-context-selection) works, how Peakhood [chooses the most likely transcript](#choosing-the-most-likely-transcript), Peakhood's [Inputs](#inputs), Peakhood's [Outputs](#outputs), and last but not least how [visually explore](#visual-exploration) the output data.
 
 
@@ -394,7 +403,7 @@ An overview of the modes can be obtained by:
 
 
 ```
-$ peakhood -h
+$ peakhood -h        
 usage: peakhood [-h] [-v] {extract,merge,batch,motif} ...
 
 Individual site context extraction for CLIP-Seq peak regions.
@@ -424,23 +433,22 @@ The following command line arguments are available in `peakhood extract` mode:
 ```
 $ peakhood extract -h
 usage: peakhood extract [-h] --in str --bam str [str ...] --gtf str --gen str
-                        --out OUT_FOLDER
-                        [--site-id LIST_SITE_IDS [LIST_SITE_IDS ...]]
-                        [--thr float] [--thr-rev-filter] [--max-len int]
+                        --out str [--site-id str [str ...]] [--thr float]
+                        [--thr-rev-filter] [--max-len int]
                         [--min-exon-overlap float] [--min-ei-ratio float]
                         [--min-eib-ratio float] [--eib-width int]
                         [--eibr-mode {1,2}] [--no-eibr-filter]
                         [--no-eir-wt-filter] [--no-eibr-wt-filter]
                         [--bam-pp-mode {1,2,3}] [--read-pos-mode {1,2,3}]
-                        [--tbt-filter-ids LIST_TBT_FILTER_IDS [LIST_TBT_FILTER_IDS ...]]
-                        [--no-biotype-filter] [--discard-single-ex-tr]
-                        [--isr-ext-mode {1,2}] [--isr-max-reg-len int]
-                        [--no-isr-double-count] [--no-isr-sub-count]
-                        [--min-exbs-isr-c int] [--no-tis-filter]
-                        [--min-tis-sites int] [--f1-filter str [str ...]]
-                        [--no-f1-filter] [--f2-filter str [str ...]]
-                        [--f2-mode {1,2}] [--isrn-prefilter int]
-                        [--merge-mode {1,2}] [--merge-ext int] [--pre-merge]
+                        [--tbt-filter-ids str [str ...]] [--no-biotype-filter]
+                        [--discard-single-ex-tr] [--isr-ext-mode {1,2}]
+                        [--isr-max-reg-len int] [--no-isr-double-count]
+                        [--no-isr-sub-count] [--min-exbs-isr-c int]
+                        [--no-tis-filter] [--min-tis-sites int]
+                        [--f1-filter str [str ...]] [--no-f1-filter]
+                        [--f2-filter str [str ...]] [--f2-mode {1,2}]
+                        [--isrn-prefilter int] [--merge-mode {1,2}]
+                        [--merge-ext int] [--pre-merge]
                         [--seq-ext-mode {1,2,3}] [--seq-ext int]
                         [--rnaseq-bam str] [--rnaseq-bam-rev] [--keep-bam]
                         [--new-site-id str] [--data-id str] [--report]
@@ -622,8 +630,7 @@ The following command line arguments are available in `peakhood merge` mode:
 
 ```
 $ peakhood merge -h
-usage: peakhood merge [-h] --in str [str ...] --out OUT_FOLDER [--gtf str]
-                      [--report]
+usage: peakhood merge [-h] --in str [str ...] --out str [--gtf str] [--report]
 
 optional arguments:
   -h, --help          show this help message and exit
@@ -645,7 +652,7 @@ Note that an additional `--gtf` file can be supplied here, to add gene region an
 
 #### Batch process multiple datasets
 
-The following command line arguments are available in `peakhood merge` mode:
+The following command line arguments are available in `peakhood batch` mode:
 
 ```
 $ peakhood batch -h
@@ -656,16 +663,16 @@ usage: peakhood batch [-h] --in str --gtf str --gen str --out str
                       [--eibr-mode {1,2}] [--no-eibr-filter]
                       [--no-eir-wt-filter] [--no-eibr-wt-filter]
                       [--bam-pp-mode {1,2,3}] [--read-pos-mode {1,2,3}]
-                      [--tbt-filter-ids LIST_TBT_FILTER_IDS [LIST_TBT_FILTER_IDS ...]]
-                      [--no-biotype-filter] [--min-exbs-isr-c int]
-                      [--no-tis-filter] [--min-tis-sites int]
-                      [--f1-filter str [str ...]] [--no-f1-filter]
-                      [--f2-filter str [str ...]] [--f2-mode {1,2}]
-                      [--isrn-prefilter int] [--isr-ext-mode {1,2}]
-                      [--isr-max-reg-len int] [--merge-mode {1,2}]
-                      [--merge-ext int] [--pre-merge] [--seq-ext-mode {1,2,3}]
-                      [--seq-ext int] [--rnaseq-bam str] [--rnaseq-bam-rev]
-                      [--new-ids] [--add-gtf str] [--report]
+                      [--tbt-filter-ids str [str ...]] [--no-biotype-filter]
+                      [--min-exbs-isr-c int] [--no-tis-filter]
+                      [--min-tis-sites int] [--f1-filter str [str ...]]
+                      [--no-f1-filter] [--f2-filter str [str ...]]
+                      [--f2-mode {1,2}] [--isrn-prefilter int]
+                      [--isr-ext-mode {1,2}] [--isr-max-reg-len int]
+                      [--merge-mode {1,2}] [--merge-ext int] [--pre-merge]
+                      [--seq-ext-mode {1,2,3}] [--seq-ext int]
+                      [--rnaseq-bam str] [--rnaseq-bam-rev] [--new-ids]
+                      [--add-gtf str] [--threads int] [--report]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -798,10 +805,16 @@ optional arguments:
   --new-ids             Generate new IDs to exchange --in BED column 4 site
                         IDs. Use dataset ID from --in file names as stem (see
                         --in option). NOTE that site IDs have to be unique if
-                        --new-ids is not set (default: False)
+                        --new-site-id is not set (default: False)
   --add-gtf str         Additional genomic annotations GTF file (.gtf or
                         .gtf.gz) for transcript to gene region annotation
                         (corresponding to peakhood merge --gtf)
+  --threads int         Number of threads used for batch processing. --threads
+                        determines the maximum number of extraction jobs run
+                        in parallel (depending on number of CPU threads and
+                        number of datasets available). Note that the more jobs
+                        are run in parallel, the higher the memory consumption
+                        (default: 1)
   --report              Generate .html reports for extract and merge,
                         containing dataset statistics and plots (default:
                         False)

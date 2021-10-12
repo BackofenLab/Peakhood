@@ -610,7 +610,7 @@ def setup_argument_parser():
                    type=int,
                    metavar='int',
                    default=1,
-                   help="Number of threads used for batch processing. Keep in mind that more threads will increase memory consumption (default: 1")
+                   help="Number of threads used for batch processing. --threads determines the maximum number of extraction jobs run in parallel (depending on number of CPU threads and number of --in datasets available). Note that the more jobs are run in parallel, the higher the memory consumption (default: 1)")
     p_batch.add_argument("--report",
                    dest="report",
                    default = False,
