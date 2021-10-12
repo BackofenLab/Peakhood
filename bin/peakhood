@@ -13,7 +13,7 @@ import sys
 import re
 import os
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1534,7 +1534,7 @@ def main_extract(args):
     trid2isrfc_dic:
         transcript ID to True or False; store 1 if all exons connected
         via intron-spanning reads, otherwise 0. If only one exon
-        also store False.
+        also store False. Also includes ISR reads from --rnaseq-bam.
 
     """
 
@@ -2482,65 +2482,6 @@ def main_extract(args):
         #     print("pair_id:", pair_id)
         #
 
-
-
-        """
-SRSF1_K562_IDR_0372
-exb_best_ex_ids_list: ['ENST00000505658.6_e10']
-pair_id:
-SRSF1_K562_IDR_1388
-exb_best_ex_ids_list: ['ENST00000505658.6_e10', 'ENST00000240304.5_e10']
-pair_id:
-SRSF1_K562_IDR_1412
-exb_best_ex_ids_list: ['ENST00000505658.6_e9']
-pair_id: SRSF1_K562_IDR_0372
-
-SRSF1_K562_IDR_0372
-id2ids_dic: ['SRSF1_K562_IDR_1388', 'SRSF1_K562_IDR_1412']
-
-
-
-
-
-        print("id2ids_dic:", id2ids_dic[sid])
-        print("id2ids_dic[SRSF1_K562_IDR_1388]:", id2ids_dic["SRSF1_K562_IDR_1388"])
-        print("id2ids_dic[SRSF1_K562_IDR_1412]:", id2ids_dic["SRSF1_K562_IDR_1412"])
-
-
-        sid2 = "SRSF1_K562_IDR_1388"
-        sid3 = "SRSF1_K562_IDR_1412"
-        sids1 = "%s-EB-%s" %(sid, sid2)
-        sids2 = "%s-EB-%s" %(sid, sid3)
-        if sids1 in ids2isrc_dic:
-            print(sids1, ids2isrc_dic[sids1])
-        if sids2 in ids2isrc_dic:
-            print(sids2, ids2isrc_dic[sids2])
-
-
-
-        SRSF1_K562_IDR_0372
-        exb_best_ex_ids_list: ['ENST00000505658.6_e10']
-        pair_id:
-        id2ids_dic: ['SRSF1_K562_IDR_1388', 'SRSF1_K562_IDR_1412']
-
-
-Get adjacent sites at exon borders ...
-# adjacent sites at exon borders:  115
-SRSF1_K562_IDR_0372
-exb_best_ex_ids_list: ['ENST00000505658.6_e10']
-pair_id:
-
-
-id2ids_dic[SRSF1_K562_IDR_1388]: ['SRSF1_K562_IDR_0372']
-id2ids_dic[SRSF1_K562_IDR_1412]: ['SRSF1_K562_IDR_0372']
-SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1388 11
-SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1412 2
-
-
-
-        """
-
-
         if pair_id:
             id2exb_pair_dic[site_id] = pair_id
             pair_ids_list = [site_id, pair_id]
@@ -2572,6 +2513,7 @@ SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1412 2
         idfilt2best_trids_dic["%s,TSC" %(site_id)] = tsc_best_tr_ids_list
 
         # Intron-spanning reads in exon neighborhood (ISRN).
+        # exid2isrn_dic includes ISR reads from --rnaseq-bam.
         isrn_best_ex_ids_list = hoodlib.get_highest_scoring_ids(eir_ex_ids_list, exid2isrn_dic)
         isrn_best_ex_ids_list = list(set(isrn_best_ex_ids_list))
         isrn_best_tr_ids_list = []
@@ -2581,6 +2523,7 @@ SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1412 2
         idfilt2best_exids_dic["%s,ISRN" %(site_id)] = isrn_best_ex_ids_list
 
         # Intron-spanning reads over whole transcript (ISR).
+        # trid2isrc_dic includes ISR reads from --rnaseq-bam.
         isr_best_tr_ids_list = hoodlib.get_highest_scoring_ids(eir_tr_ids_list, trid2isrc_dic)
         isr_best_tr_ids_list = list(set(isr_best_tr_ids_list))
         idfilt2best_trids_dic["%s,ISR" %(site_id)] = isr_best_tr_ids_list
@@ -2591,6 +2534,7 @@ SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1412 2
         idfilt2best_trids_dic["%s,FUCO" %(site_id)] = fuco_best_tr_ids_list
 
         # Intron-spanning reads connecting each transcript exon (ISRFC).
+        # trid2isrfc_dic includes ISR reads from --rnaseq-bam.
         isrfc_best_tr_ids_list = hoodlib.get_highest_scoring_ids(eir_tr_ids_list, trid2isrfc_dic)
         isrfc_best_tr_ids_list = list(set(isrfc_best_tr_ids_list))
         idfilt2best_trids_dic["%s,ISRFC" %(site_id)] = isrfc_best_tr_ids_list
@@ -4001,6 +3945,9 @@ SRSF1_K562_IDR_0372-EB-SRSF1_K562_IDR_1412 2
             os.remove(tr_regions_rnaseq_bam)
     if os.path.exists(exon_intron_bed):
         os.remove(exon_intron_bed)
+    merged_filt_tmp_bam = args.out_folder + "/" + "merged_filtered_in.tmp.bam"
+    if os.path.exists(merged_filt_tmp_bam):
+        os.remove(merged_filt_tmp_bam)
 
 
     """
