@@ -414,13 +414,6 @@ def setup_argument_parser():
                    metavar='float',
                    default = None,
                    help = "Minimum site score (--in BED files column 5) for filtering (assuming higher score == better site) (default: None)")
-    p_batch.add_argument("--threads",
-                         dest="threads",
-                         type=int,
-                         metavar='int',
-                         default=1,
-                         help="Number of threads used for batch processing. (Keep in mind that changing will increase memory consumption) (default:1")
-
     p_batch.add_argument("--thr-rev-filter",
                    dest="rev_filter",
                    default = False,
@@ -612,6 +605,12 @@ def setup_argument_parser():
                    metavar='str',
                    default=False,
                    help = "Additional genomic annotations GTF file (.gtf or .gtf.gz) for transcript to gene region annotation (corresponding to peakhood merge --gtf)")
+    p_batch.add_argument("--threads",
+                   dest="threads",
+                   type=int,
+                   metavar='int',
+                   default=1,
+                   help="Number of threads used for batch processing. Keep in mind that more threads will increase memory consumption (default: 1")
     p_batch.add_argument("--report",
                    dest="report",
                    default = False,
@@ -942,6 +941,7 @@ def main_extract(args):
                                             id2sc_dic=id2sc_dic,
                                             id2len_dic=id2len_dic,
                                             id2gen_se_dic=id2gen_se_dic,
+                                            tmp_out_folder=args.out_folder,
                                             new_stem_id=args.new_site_id)
         c_sites_after_pm = len(pm_id2row_dic)
         print("# --in sites after pre-merging:  %i" %(c_sites_after_pm))
@@ -1143,6 +1143,7 @@ def main_extract(args):
     site_seqs_dic = hoodlib.get_extended_gen_seqs(args, id2row_dic,
                                         ref_len_dic=chr_len_dic,
                                         id2out_dic=gen_sites_merged_dic,
+                                        tmp_out_folder=args.out_folder,
                                         rr_ratios_dic=gen_rr_ratios_dic)
 
 
@@ -1246,7 +1247,7 @@ def main_extract(args):
         else:
             assert False, "invalid bam_pp_mode set"
         hoodlib.merge_filter_bam_files(args.list_bam, in_bam,
-                                       out_folder=args.out_folder,
+                                       tmp_out_folder=args.out_folder,
                                        pp_mode=args.bam_pp_mode)
     else:
         if args.bam_pp_mode == 1:
@@ -1601,7 +1602,8 @@ def main_extract(args):
     isolated_exon_dic = {} # Isolated single exon IDs.
     if single_ex_tr_dic:
         print("Get isolated single exon genes ... ")
-        isolated_tr_ids_dic = hoodlib.get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic)
+        isolated_tr_ids_dic = hoodlib.get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic,
+                                                               tmp_out_folder=args.out_folder)
         if isolated_tr_ids_dic:
             for tr_id in isolated_tr_ids_dic:
                 ex_id = tr_id + "_e1"
@@ -1628,7 +1630,8 @@ def main_extract(args):
                                      gid2isrc_dic, tr2reg_dic,
                                      remove_single_ex_genes=remove_single_ex_genes,
                                      trid2exc_dic=trid2exc_dic,
-                                     min_isrc=min_ol_gene_isr_count)
+                                     min_isrc=min_ol_gene_isr_count,
+                                     tmp_out_folder=args.out_folder)
 
     rem_tr_ids_dic = {}
     if gid2remove_dic:
@@ -1750,6 +1753,7 @@ def main_extract(args):
                                 reg2cov_dic=reg2cov_dic,
                                 isr_sub_count=substr_isrc_from_int_c,
                                 isr_intron_reg_dic=isr_intron_reg_dic,
+                                tmp_out_folder=args.out_folder,
                                 tr_ids_dic=trid2isrc_dic)
 
 
@@ -1852,6 +1856,7 @@ def main_extract(args):
                                                     reg2cov_dic=reg2cov_dic,
                                                     next2top_isrn_dic=next2top_isrn_dic,
                                                     max_read2isr_ratio=max_read2isr_ratio,
+                                                    tmp_out_folder=args.out_folder,
                                                     min_isrc=min_intron_reg_isrc)
 
         if rem_nexts_dic:
@@ -3296,7 +3301,8 @@ def main_extract(args):
                                                         lc_repeats=True,
                                                         correct_min_ex_order=correct_min_ex_order,
                                                         tr2exc_dic=tr2exc_dic,
-                                                        tr_ids_dic=tc_tr_ids_dic)
+                                                        tr_ids_dic=tc_tr_ids_dic,
+                                                        tmp_out_folder=args.out_folder)
         assert tr_seqs_dic, "tr_seqs_dic empty"
         for tr_id in tr_seqs_dic:
             tr_len_dic[tr_id] = len(tr_seqs_dic[tr_id])
@@ -4190,8 +4196,8 @@ def main_merge(args):
         # If --gtf file given, overlap exonic_sites_tr_con_gen_bed with gene regions.
         if args.in_gtf:
             hoodlib.bed_intersect_sites_genes_get_infos(exonic_sites_tr_con_gen_bed,
-                                                        gene_regions_gtf_tmp_bed,
-                                                        id2gids_dic)
+                                                        gene_regions_gtf_tmp_bed, id2gids_dic,
+                                                        tmp_out_folder=args.out_folder)
 
     SETSTATSOUT.close()
 
@@ -4808,7 +4814,7 @@ def main_batch(args):
 
     # Batch results output folder.
     if os.path.exists(args.out_folder):
-        assert len(os.listdir(args.out_folder)) == 0, "non empty --out folder already exists"
+        assert len(os.listdir(args.out_folder)) == 0, "--out folder already exists"
     else:
         os.makedirs(args.out_folder)
 

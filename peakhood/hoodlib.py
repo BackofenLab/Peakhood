@@ -1264,7 +1264,8 @@ def get_transcript_sequences_from_gtf(in_gtf, in_2bit,
                                       lc_repeats=False,
                                       correct_min_ex_order=False,
                                       tr2exc_dic=False,
-                                      tr_ids_dic=False):
+                                      tr_ids_dic=False,
+                                      tmp_out_folder=False):
     """
     Get spliced transcript sequences based on in_gtf annotations. For
     transcripts with > 1 exon, concatenate the exon sequences to build
@@ -1286,6 +1287,9 @@ def get_transcript_sequences_from_gtf(in_gtf, in_2bit,
     tmp_bed = str(random_id) + ".tmp.bed"
     random_id = uuid.uuid1()
     tmp_fa = str(random_id) + ".tmp.fa"
+    if tmp_out_folder:
+        tmp_bed = tmp_out_folder + "/" + tmp_bed
+        tmp_fa = tmp_out_folder + "/" + tmp_fa
 
     # Transcript sequences dic.
     tr_seqs_dic = {}
@@ -2522,6 +2526,7 @@ def gtf_get_intron_exon_cov(in_gtf, in_bam, out_bed,
                             reg2cov_dic=None,
                             isr_sub_count=True,
                             isr_intron_reg_dic=False,
+                            tmp_out_folder=False,
                             tr_ids_dic=False):
     """
 
@@ -2572,6 +2577,8 @@ def gtf_get_intron_exon_cov(in_gtf, in_bam, out_bed,
 
     random_id = uuid.uuid1()
     tmp_bed = str(random_id) + ".intron_exon.tmp.bed"
+    if tmp_out_folder:
+        tmp_bed = tmp_out_folder + "/" + tmp_bed
     OUTBED = open(tmp_bed, "w")
 
     # Read in exon features from GTF file.
@@ -4347,6 +4354,7 @@ def get_exons_fully_ol_with_isr_introns(isr_intron_reg_dic, next2reg_dic,
                                         reg2cov_dic=None,
                                         max_read2isr_ratio=8,
                                         next2top_isrn_dic=False,
+                                        tmp_out_folder=False,
                                         min_isrc=5):
     """
     Get exons fully overlapping with ISR-containing introns
@@ -4373,6 +4381,8 @@ def get_exons_fully_ol_with_isr_introns(isr_intron_reg_dic, next2reg_dic,
         NEXT ID to top ISRN count mapping. If given, a fully overlapping
         exon with # ISRN reads >= # ISR reads of the overlapping intron
         does not get returned.
+    tmp_out_folder:
+        Provide output folder to store tmp files in.
 
     """
     assert isr_intron_reg_dic, "isr_intron_reg_dic empty"
@@ -4382,6 +4392,9 @@ def get_exons_fully_ol_with_isr_introns(isr_intron_reg_dic, next2reg_dic,
     next_tmp_bed = str(random_id) + ".next_regions.tmp.bed"
     random_id = uuid.uuid1()
     isr_intron_tmp_bed = str(random_id) + ".intron_regions.tmp.bed"
+    if tmp_out_folder:
+        next_tmp_bed = tmp_out_folder + "/" + next_tmp_bed
+        isr_intron_tmp_bed = tmp_out_folder + "/" + isr_intron_tmp_bed
 
     bed_write_reg_list_to_file(next2reg_dic, next_tmp_bed,
                                id2out_dic=next_ids_dic)
@@ -4946,6 +4959,8 @@ def bam_to_bed_get_isr_stats(in_bam, next_ol_bed,
         Reads mapping to reverse strand (e.g. for certain RNA-seq datasets).
     isr_intron_reg_dic:
         Intronic region -> ISR count.
+    isr_bed:
+        Define BED file to store ISR reads in.
 
     Removed:
         next2isrc_dic:
@@ -5140,7 +5155,8 @@ def bam_to_bed_get_isr_stats(in_bam, next_ol_bed,
 
 ################################################################################
 
-def get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic):
+def get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic,
+                             tmp_out_folder=False):
 
     """
     Get isolated transcripts (no overlap with other transcripts).
@@ -5162,6 +5178,8 @@ def get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic):
 
     random_id = uuid.uuid1()
     tmp_bed = str(random_id) + ".gene_regions.tmp.bed"
+    if tmp_out_folder:
+        tmp_bed = tmp_out_folder + "/" + tmp_bed
 
     TREGOUT = open(tmp_bed, "w")
     for tr_id in single_ex_tr_dic:
@@ -5226,6 +5244,7 @@ def get_isolated_transcripts(single_ex_tr_dic, tr2reg_dic):
 def remove_overlapping_genes(gid2sel_tr_dic, gid2isrc_dic, tr2reg_dic,
                              remove_single_ex_genes=False,
                              trid2exc_dic=False,
+                             tmp_out_folder=False,
                              min_isrc=2):
     """
     Overlap gene regions (using longest transcript of each gene) with
@@ -5273,6 +5292,8 @@ def remove_overlapping_genes(gid2sel_tr_dic, gid2isrc_dic, tr2reg_dic,
 
     random_id = uuid.uuid1()
     tmp_bed = str(random_id) + ".gene_regions.tmp.bed"
+    if tmp_out_folder:
+        tmp_bed = tmp_out_folder + "/" + tmp_bed
 
     # Write gene regions BED for overlap calculation.
     GREGOUT = open(tmp_bed, "w")
@@ -6110,6 +6131,7 @@ def filter_bam_file(in_bam, out_bam,
 def get_extended_gen_seqs(args, id2row_dic,
                           ref_len_dic=False,
                           id2out_dic=False,
+                          tmp_out_folder=False,
                           rr_ratios_dic=None):
     """
     Extend genomic regions and return extended genomic site sequences.
@@ -6119,6 +6141,9 @@ def get_extended_gen_seqs(args, id2row_dic,
     zero_sc_tmp_bed = str(random_id) + ".zero_sc.tmp.bed"
     random_id = uuid.uuid1()
     zero_sc_tmp_fa = str(random_id) + ".zero_sc.tmp.fa"
+    if tmp_out_folder:
+        zero_sc_tmp_bed = tmp_out_folder + "/" + zero_sc_tmp_bed
+        zero_sc_tmp_fa = tmp_out_folder + "/" + zero_sc_tmp_fa
 
     # Output BED regions with zero scores.
     bed_write_row_dic_into_file(id2row_dic, zero_sc_tmp_bed,
@@ -6155,12 +6180,11 @@ def get_extended_gen_seqs(args, id2row_dic,
 
 def pm_ext_merge_bed_regions(id2row_dic,
                              ref_len_dic,
-                             tmp1_bed=False,
-                             tmp2_bed=False,
                              id2sc_dic=None,
                              id2len_dic=None,
                              id2gen_se_dic=None,
                              new_stem_id=False,
+                             tmp_out_folder=False,
                              merge_ext=0):
     """
     peakhood extract --pre-merge
@@ -6171,12 +6195,11 @@ def pm_ext_merge_bed_regions(id2row_dic,
     """
     random_id = uuid.uuid1()
     m1_tmp_bed = str(random_id) + ".pre_merge1.tmp.bed"
-    if tmp1_bed:
-        m1_tmp_bed = tmp1_bed
     random_id = uuid.uuid1()
     m2_tmp_bed = str(random_id) + ".pre_merge2.tmp.bed"
-    if tmp2_bed:
-        m2_tmp_bed = tmp2_bed
+    if tmp_out_folder:
+        m1_tmp_bed = tmp_out_folder + "/" + m1_tmp_bed
+        m2_tmp_bed = tmp_out_folder + "/" + m2_tmp_bed
 
     bed_write_row_dic_into_file(id2row_dic, m1_tmp_bed,
                                 ext_mode=1,
@@ -6185,6 +6208,7 @@ def pm_ext_merge_bed_regions(id2row_dic,
                                 chr_len_dic=ref_len_dic)
 
     bed_sort_merge_output_ol_regions(m1_tmp_bed, m2_tmp_bed,
+                                     tmp_out_folder=tmp_out_folder,
                                      new_stem_id=new_stem_id)
 
     pm_id2row_dic = bed_read_rows_into_dic(m2_tmp_bed,
@@ -6203,7 +6227,7 @@ def pm_ext_merge_bed_regions(id2row_dic,
 ################################################################################
 
 def merge_filter_bam_files(list_bam, out_bam,
-                           out_folder="",
+                           tmp_out_folder=False,
                            pp_mode=1):
     """
     Preprocess and filter input --bam files.
@@ -6222,8 +6246,8 @@ def merge_filter_bam_files(list_bam, out_bam,
     if pp_mode != 1:
         random_id = uuid.uuid1()
         tmp_bam = str(random_id) + ".tmp.bam"
-        if out_folder:
-            tmp_bam = out_folder + "/" + str(random_id) + ".tmp.bam"
+        if tmp_out_folder:
+            tmp_bam = tmp_out_folder + "/" + tmp_bam
 
         # Merge.
         check_cmd = "samtools merge -f " + tmp_bam + " " + bam_files
@@ -6439,7 +6463,8 @@ def gtf_check_gene_feat(in_gtf,
 
 ################################################################################
 
-def bed_intersect_sites_genes_get_infos(sites_bed, genes_bed, id2gids_dic):
+def bed_intersect_sites_genes_get_infos(sites_bed, genes_bed, id2gids_dic,
+                                        tmp_out_folder=False):
     """
     Intersect gene regions with sites, and return site_id -> overlapping
     gene IDs mapping.
@@ -6458,6 +6483,8 @@ def bed_intersect_sites_genes_get_infos(sites_bed, genes_bed, id2gids_dic):
     # Generate .tmp files.
     random_id = uuid.uuid1()
     tmp_out = str(random_id) + ".intersect.tmp.out"
+    if tmp_out_folder:
+        tmp_out = tmp_out_folder + "/" + tmp_out
 
     check_cmd = "intersectBed -a " + sites_bed + " -b " + genes_bed + " " + params
     output = subprocess.getoutput(check_cmd)
@@ -6778,6 +6805,7 @@ def bed_sort_merge_output_top_entries(in_bed, out_bed,
 ################################################################################
 
 def bed_sort_merge_output_ol_regions(in_bed, out_bed,
+                                     tmp_out_folder=False,
                                      new_stem_id=False):
     """
     Sort in_bed file, use mergeBed from bedtools to merge overlapping entries,
@@ -6809,6 +6837,8 @@ def bed_sort_merge_output_ol_regions(in_bed, out_bed,
     # Generate .tmp files.
     random_id = uuid.uuid1()
     tmp_bed = str(random_id) + ".tmp.bed"
+    if tmp_out_folder:
+        tmp_bed = tmp_out_folder + "/" + tmp_bed
 
     # Get region scores.
     id2pol_dic = {}
@@ -8138,4 +8168,3 @@ def extract_multicore_wrapper(extract_out_folder, extract_cmd, dataset_id):
     dataset_print += "Percentage (# transcript context sites / # exonic sites):\n%s\n" %(perc_exonic_tc_sites)
     dataset_print += "Percentage (# exon border sites / # transcript context sites):\n%s\n\n" %(perc_exb_sites)
     return dataset_print
-
