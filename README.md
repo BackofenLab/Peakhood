@@ -382,7 +382,7 @@ Peakhood also supports parallel batch processing (from v0.3 on), to speed up bat
 peakhood batch --in batch_test_in --gtf Homo_sapiens.GRCh38.103.gtf.gz --gen hg38.2bit --out batch_test_out --report --new-ids --pre-merge --threads 2
 ```
 
-Note that parallel processing increases the memory consumption, so if you are experiencing memory problems during parallel batch processing, try to decrease `--threads` (`--threads 1` equals the default setting, i.e. sequential processing).
+NOTE that parallel processing increases the memory consumption, so if you are experiencing memory problems during parallel batch processing, try to decrease `--threads` (`--threads 1` equals the default setting, i.e. sequential processing).
 
 
 
