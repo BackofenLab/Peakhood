@@ -13,7 +13,7 @@ import sys
 import re
 import os
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -329,6 +329,12 @@ def setup_argument_parser():
                    metavar='str',
                    default = False,
                    help = "Define dataset ID for the input dataset to be stored in --out folder. This will later be used as dataset ID in peakhood merge for assigning new site IDs. By default, the dataset ID is extracted from the --in file name")
+    p_ex.add_argument("--chr-id-style",
+                   dest="chr_id_style",
+                   type = int,
+                   default = 1,
+                   choices = [1,2],
+                   help = "Define style of chromosome IDs to convert input IDs to. NOTE that --gen and --bam files must contain the defined style! (1) Convert BED/GTF chromsome IDs to chr1,chr2,...,chrM format. (2) Convert BED/GTF chromsome IDs to 1,2,...,MT format (default: 1)")
     p_ex.add_argument("--report",
                    dest="report",
                    default = False,
@@ -364,6 +370,12 @@ def setup_argument_parser():
                    type=str,
                    metavar='str',
                    help = "Genomic annotations GTF file (.gtf or .gtf.gz) for additional gene region annotations")
+    p_mrg.add_argument("--chr-id-style",
+                   dest="chr_id_style",
+                   type = int,
+                   default = 1,
+                   choices = [1,2],
+                   help = "Define style of chromosome IDs to convert --gtf chromosome IDs to. MAKE SURE to use the same setting used for generating --in datasets with peakhood extract! This makes sure that --in dataset annotations are compatible with --gtf GTF chromosome IDs. (1) Convert GTF chromsome IDs to chr1,chr2,...,chrM format. (2): Convert GTF chromsome IDs to 1,2,...,MT format (default: 1)")
     p_mrg.add_argument("--report",
                    dest="report",
                    default = False,
@@ -608,6 +620,12 @@ def setup_argument_parser():
                    metavar='int',
                    default=1,
                    help="Number of threads used for batch processing. --threads determines the maximum number of extraction jobs run in parallel (depending on number of CPU threads and number of --in datasets available). Note that the more jobs are run in parallel, the higher the memory consumption (default: 1)")
+    p_batch.add_argument("--chr-id-style",
+                   dest="chr_id_style",
+                   type = int,
+                   default = 1,
+                   choices = [1,2],
+                   help = "Define style of chromosome IDs to convert input IDs to. NOTE that --gen and --bam files must contain the defined style. (1) Convert BED/GTF chromsome IDs to chr1,chr2,...,chrM format. (2) Convert BED/GTF chromsome IDs to 1,2,...,MT format (default: 1)")
     p_batch.add_argument("--report",
                    dest="report",
                    default = False,
@@ -670,19 +688,6 @@ def setup_argument_parser():
 def main_extract(args):
     """
     Extract individual site context.
-
-    Output different context sites to BED
-    Merge entries (optionally)
-
-    Remove intron spanning sites, i.e. mapping to two exons (?)
-    These will be removed since not -f 0.9 overlapping
-
-
-
-    Useful output:
-    unique_exon_regions.bed all unique exon regions
-    sel_tr_exon_regions.bed selected transcript / exon regions
-
 
     """
 
@@ -890,6 +895,7 @@ def main_extract(args):
     id2len_dic = {} # site ID to length.
     filt_stats_dic = {}
     id2gen_se_dic = {}  # site ID to [gen_start, gen_end]
+    in_bed_chr_ids_dic = {} # --in BED chromosome IDs dictionary.
 
     new_ids = False
     if args.new_site_id:
@@ -902,6 +908,8 @@ def main_extract(args):
                                        filt_stats_dic=filt_stats_dic,
                                        max_len=args.max_len,
                                        sc_thr=args.sc_thr,
+                                       chr_id_style=args.chr_id_style,
+                                       chr_ids_dic=in_bed_chr_ids_dic,
                                        id2gen_se_dic=id2gen_se_dic,
                                        rev_filter=args.rev_filter,
                                        new_ids=new_ids)
@@ -915,6 +923,13 @@ def main_extract(args):
         print("# --in sites non-std chrom IDs:  %i" %(filt_stats_dic["chr_filt"]))
     print("# --in sites post-filtering:     %i" %(filt_stats_dic['c_out']))
 
+    """
+    Check if (converted) chromosome IDs from --in BED are
+    also in --gen .2bit file.
+
+    """
+    for chr_id in in_bed_chr_ids_dic:
+        assert chr_id in chr_len_dic, "chromosome ID \"%s\" from --in BED not in --gen .2bit file. Please provide fitting --in BED and --gen .2bit files or set --chr-id-style accordingly" %(chr_id)
 
     """
     Pre-merge --in sites.
@@ -996,13 +1011,15 @@ def main_extract(args):
         correct_min_ex_order = True
         print("Need to correct exon number order for minus-strand exons ... ")
         print("Get exon numbers from --gtf ... ")
-        tr2exc_dic = hoodlib.gtf_extract_exon_numbers(args.in_gtf)
+        tr2exc_dic = hoodlib.gtf_extract_exon_numbers(args.in_gtf,
+                                        chr_id_style=args.chr_id_style)
 
     keep_tr_ids_dic = {}
     if not tr2exc_dic and args.discard_single_ex_tr:
         print("--discard-single-ex-tr enabled ... ")
         print("Get exon numbers from --gtf ... ")
-        tr2exc_dic = hoodlib.gtf_extract_exon_numbers(args.in_gtf)
+        tr2exc_dic = hoodlib.gtf_extract_exon_numbers(args.in_gtf,
+                                        chr_id_style=args.chr_id_style)
         for tr_id in tr2exc_dic:
             tr_exc = tr2exc_dic[tr_id]
             if tr_exc != 1:
@@ -1014,6 +1031,7 @@ def main_extract(args):
     trid2reg_dic = {}  # tr_id -> [chr_id, feat_s, feat_e, feat_pol] # o-based start.
     hoodlib.gtf_extract_transcript_bed(args.in_gtf, tr_regions_gtf_tmp_bed,
                                        trid2reg_dic=trid2reg_dic,
+                                       chr_id_style=args.chr_id_style,
                                        tr_ids_dic=keep_tr_ids_dic)
 
     # Transcript regions overlap with --in sites.
@@ -1067,6 +1085,7 @@ def main_extract(args):
                                         correct_min_ex_order=correct_min_ex_order,
                                         tr2exc_dic=tr2exc_dic,
                                         gene_feat_check=False,
+                                        chr_id_style=args.chr_id_style,
                                         reject_tr_bt_dic=reject_tr_bt_dic,
                                         exid2trid_dic=exid2trid_dic,
                                         next2exids_dic=next2exids_dic,
@@ -1259,6 +1278,16 @@ def main_extract(args):
             hoodlib.filter_bam_file(args.list_bam[0], in_bam,
                                     pp_mode=args.bam_pp_mode)
 
+
+    """
+    Check some BAM reads for compatible chromosome IDs.
+
+    """
+    bam_chr_ids_dic = hoodlib.get_chr_ids_from_bam_file(in_bam,
+                                                    k_top_reads=1000)
+
+    for chr_id in bam_chr_ids_dic:
+        assert chr_id in chr_len_dic, "first chromosome ID \"%s\" in --bam file not in --gen .2bit file. Please provide compatible --bam and --gen files (i.e., format of chromosome IDs should be the same)" %(chr_id)
 
     """
     Get and count intronic sites on transcripts for TIS filtering.
@@ -1745,6 +1774,7 @@ def main_extract(args):
                                 tr2exc_dic=tr2exc_dic,
                                 read_pos_mode=args.read_pos_mode,
                                 eib_width=args.eib_width,
+                                chr_id_style=args.chr_id_style,
                                 add_isr_bed=isr_tmp_bed,
                                 count_isr_double=count_isr_double,
                                 reg2cov_dic=reg2cov_dic,
@@ -3296,6 +3326,7 @@ def main_extract(args):
         tr_seqs_dic = hoodlib.get_transcript_sequences_from_gtf(args.in_gtf,
                                                         args.in_2bit,
                                                         lc_repeats=True,
+                                                        chr_id_style=args.chr_id_style,
                                                         correct_min_ex_order=correct_min_ex_order,
                                                         tr2exc_dic=tr2exc_dic,
                                                         tr_ids_dic=tc_tr_ids_dic,
@@ -4043,6 +4074,7 @@ def main_merge(args):
 
     gid2gn_dic = {}  # gene ID -> gene name.
     gid2gbt_dic = {}  # gene ID -> gene biotype.
+    gtf_chr_ids_dic = {} # chromosome IDs from --gtf.
 
     if args.in_gtf:
         assert os.path.exists(args.in_gtf), "--gtf file %s not found" %(args.in_gtf)
@@ -4050,6 +4082,8 @@ def main_merge(args):
         print("Extract gene regions + infos from --gtf ... ")
         hoodlib.gtf_extract_gene_bed(args.in_gtf, gene_regions_gtf_tmp_bed,
                                      gid2gn_dic=gid2gn_dic,
+                                     chr_id_style=args.chr_id_style,
+                                     chr_ids_dic=gtf_chr_ids_dic,
                                      gid2gbt_dic=gid2gbt_dic)
 
 
@@ -4172,6 +4206,7 @@ def main_merge(args):
         refid2len_dic= hoodlib.read_in_ref_lengths(ref_len_in,
                                                    ref_len_dic=refid2len_dic)
         id2genreg_dic = hoodlib.read_in_genomic_regs(exonic_sites_tr_con_gen_bed,
+                                                     check_chr_ids_dic=gtf_chr_ids_dic,
                                                      id2genreg_dic=id2genreg_dic)
 
         # Read in transcript ID -> gene info mappings.
@@ -4944,6 +4979,8 @@ def main_batch(args):
     if args.report:
         extract_params += " --report "
 
+    extract_params += " --chr-id-style " + str(args.chr_id_style)
+
     extract_folders_list = []
 
     # Run peakhood extract each dataset from --in folder.
@@ -5072,6 +5109,8 @@ def main_batch(args):
     merge_cmd = "peakhood merge --in " + extract_folders_str + " --out " + args.out_folder
     if args.merge_gtf:
         merge_cmd += " --gtf " + args.merge_gtf
+        merge_cmd += " --chr-id-style " + str(args.chr_id_style)
+
     if args.report:
         merge_cmd += " --report "
 
@@ -5214,6 +5253,13 @@ def main_motif(args):
         assert os.path.exists(intergen_fa), "--in folder does not contain \"%s\". Please provide genuine peakhood extract --out folder" %(intergen_fa)
         assert os.path.exists(exon_regions_sel_tr_bed), "--in folder does not contain exon_regions.sel_tr.bed file. This is either due to no spliced transcript context sites extracted, or no genuine peakhood extract output folder provided"
 
+        # Get chr_id_style setting.
+        # extract_settings_file = args.in_data + "/settings.peakhood_extract.out"
+        # assert os.path.exists(extract_settings_file), "--in folder does not contain \"%s\". Please provide genuine peakhood extract --out folder" %(extract_settings_file)
+        # extract_settings_dic = hoodlib.read_settings_into_dic(extract_settings_file, check=False)
+        # assert "chr_id_style" in extract_settings_dic, "chr_id_style not in extract_settings_dic"
+        # chr_id_style = int(extract_settings_dic["chr_id_style"])
+
         # Get exonic transcript context hits.
         c_tc_hits, c_tc_uniq_hits, c_tc_sites, tc_reg_size = hoodlib.get_tr_motif_hits(
                                                         args.in_regex,
@@ -5257,8 +5303,6 @@ def main_motif(args):
         c_split_hits = 0
         if hits_tr_con_gen_reg_split_bed:
             if os.path.exists(hits_tr_con_gen_reg_split_bed):
-                print("Here 4 ... ")
-                print("Path:", hits_tr_con_gen_reg_split_bed)
                 c_split_hits = hoodlib.count_file_rows(hits_tr_con_gen_reg_split_bed)
 
         if args.out_folder:
@@ -5411,7 +5455,18 @@ def main_motif(args):
             print("--in transcript list input assumed. Check whether IDs are in --gtf ... ")
             # Read in --in IDs and check.
             tr_ids_dic = hoodlib.read_ids_into_dic(args.in_data)
-            all_tr_ids_dic = hoodlib.gtf_get_transcript_ids(args.in_gtf)
+            gtf_chr_ids_dic = {}
+            all_tr_ids_dic = hoodlib.gtf_get_transcript_ids(args.in_gtf,
+                                                            chr_ids_dic=gtf_chr_ids_dic)
+            # Compare chromosome IDs GTF vs 2BIT.
+            random_id = uuid.uuid1()
+            tmp_out = str(random_id) + ".chr_lengths"
+            chr_len_dic = hoodlib.get_chromosome_lengths_from_2bit(args.in_2bit, tmp_out)
+            if os.path.exists(tmp_out):
+                os.remove(tmp_out)
+            for chr_id in gtf_chr_ids_dic:
+                assert chr_id in chr_len_dic, "chromosome ID \"%s\" from --gtf GTF file not found in --gen .2bit file. Please provide compatible --gtf and .2bit files" %(chr_id)
+
             for tr_id in tr_ids_dic:
                 assert tr_id in all_tr_ids_dic, "--in transcript ID %s not found in --gtf"
             tr_ids_c = len(tr_ids_dic)
@@ -5420,6 +5475,7 @@ def main_motif(args):
             print("Extract transcript sequences using --gen and --gtf ... ")
             # Returns RNA sequences.
             tr_seqs_dic = hoodlib.get_transcript_sequences_from_gtf(args.in_gtf, args.in_2bit,
+                                                                    chr_id_style=0,
                                                                     tr_ids_dic=tr_ids_dic)
             if args.out_folder:
                 # Motif hits BED files.
@@ -5545,14 +5601,20 @@ def main_motif(args):
                 print("No chromosome IDs found in --in, interpret column 1 IDs as transcript IDs ... ")
                 # Read in transcript lengths from --gtf.
                 print("Get transcript lengths from --gtf ... ")
-                tr_len_dic = hoodlib.gtf_get_transcript_lengths(args.in_gtf)
+                gtf_chr_ids_dic = {}
+                tr_len_dic = hoodlib.gtf_get_transcript_lengths(args.in_gtf,
+                                                       chr_ids_dic=gtf_chr_ids_dic)
+                for chr_id in gtf_chr_ids_dic:
+                    assert chr_id in chr_len_dic, "chromosome ID \"%s\" from --gtf GTF file not found in --gen .2bit file. Please provide compatible --gtf and .2bit files" %(chr_id)
+
                 print("Verifying transcript IDs by checking their presence in --gtf ... ")
                 for tr_id in chr_ids_dic:
                     assert tr_id in tr_len_dic, "--in column 1 transcript ID \"%s\" not found in --gtf" %(tr_id)
                 # Get spliced transcript sequences from gtf+2bit.
                 print("Get transcript sequences from --gtf and --gen ... ")
                 tr_seqs_dic = hoodlib.get_transcript_sequences_from_gtf(args.in_gtf, args.in_2bit,
-                                                                       tr_ids_dic=chr_ids_dic)
+                                                                        chr_id_style=0,
+                                                                        tr_ids_dic=chr_ids_dic)
                 # Search for motif in sequences.
                 tr_reg_dic = hoodlib.bed_read_rows_into_dic(args.in_data, to_list=True,
                                                             check_chr_id_format=False)
@@ -5608,6 +5670,7 @@ def main_motif(args):
                     site2hitc_dic = {}
                     hoodlib.bed_convert_transcript_to_genomic_sites(hits_on_transcripts_bed, args.in_gtf,
                                                                     args.out_folder,
+                                                                    chr_id_style=0,
                                                                     site2hitc_dic=site2hitc_dic,
                                                                     out_folder=True)
                     assert site2hitc_dic, "site ID to hit count dictionary empty"

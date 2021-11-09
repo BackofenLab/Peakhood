@@ -7,7 +7,7 @@ from setuptools import setup
 
 setup(
     name='peakhood',
-    version='0.3',
+    version='0.4',
     description='Individual site context extraction for CLIP-Seq peak regions',
     long_description=open('README.md').read(),
     author='Michael Uhl',

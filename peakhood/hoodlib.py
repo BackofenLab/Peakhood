@@ -24,9 +24,6 @@ import os
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-AuthoR: uhlm [at] informatik.uni-freiburg.de
-
-
 ~~~~~~~~~~~~~
 Run doctests
 ~~~~~~~~~~~~~
@@ -35,6 +32,35 @@ python3 -m doctest hoodlib.py
 
 
 """
+
+
+################################################################################
+
+"""
+Define additional chromosome names to be supported.
+
+From Drosophila melanogaster:
+chr2L
+chr2R
+chr3L
+chr3R
+2L
+2R
+3L
+3R
+
+"""
+
+add_chr_names_dic = {
+    "chr2L" : 1,
+    "chr2R" : 1,
+    "chr3L" : 1,
+    "chr3R" : 1,
+    "2L" : 1,
+    "2R" : 1,
+    "3L" : 1,
+    "3R" : 1
+}
 
 
 ################################################################################
@@ -55,7 +81,7 @@ def dir_get_files(file_dir,
 
     >>> test_dir = "test_data"
     >>> dir_get_files(test_dir, file_ending="bam")
-    ['empty.bam']
+    ['empty.bam', 'test_reads_chrM.bam']
 
     """
 
@@ -248,6 +274,35 @@ def bed_extract_sequences_from_2bit(in_bed, out_fa, in_2bit,
 
 ################################################################################
 
+def get_chr_ids_from_bam_file(in_bam, k_top_reads=1000):
+    """
+    Return dictionary with chromosome IDs from BAM file in_bam.
+    Look only at the # k_top_reads read entries for
+    extracting chromosome IDs.
+
+    >>> in_bam = "test_data/test_reads_chrM.bam"
+    >>> get_chr_ids_from_bam_file(in_bam)
+    {'chrM': 1}
+
+    """
+
+    assert os.path.exists(in_bam), "in_bam %s does not exist" %(in_bam)
+
+    check_cmd = "samtools view " + in_bam + " | head -" + str(k_top_reads) + " | cut -f 3 | sort | uniq "
+    output = subprocess.getoutput(check_cmd)
+
+    chr_ids_dic = {}
+
+    for line in output.split('\n'):
+        cols = line.strip().split("\t")
+        chr_id = cols[0]
+        chr_ids_dic[chr_id] = 1
+
+    return chr_ids_dic
+
+
+################################################################################
+
 def get_chromosome_lengths_from_2bit(in_2bit, out_lengths,
                                      std_chr_filter=False):
     """
@@ -304,6 +359,7 @@ def get_chromosome_lengths_from_2bit(in_2bit, out_lengths,
 ################################################################################
 
 def gtf_get_transcript_lengths(in_gtf,
+                               chr_ids_dic=None,
                                tr2exc_dic=None):
     """
     Get transcript lengths (= length of their exons, not unspliced length!)
@@ -330,6 +386,7 @@ def gtf_get_transcript_lengths(in_gtf,
         if re.search("^#", line):
             continue
         cols = line.strip().split("\t")
+        chr_id = cols[0]
         feature = cols[2]
         feat_s = int(cols[3])
         feat_e = int(cols[4])
@@ -351,6 +408,9 @@ def gtf_get_transcript_lengths(in_gtf,
                 tr2exc_dic[tr_id] = 1
             else:
                 tr2exc_dic[tr_id] += 1
+        if chr_ids_dic is not None:
+            chr_ids_dic[chr_id] = 1
+
     f.close()
     assert tr2len_dic, "No IDs read into dictionary (input file \"%s\" empty or malformatted?)" % (in_gtf)
     return tr2len_dic
@@ -957,6 +1017,7 @@ def bed_get_region_lengths(bed_file):
 
 def bed_convert_transcript_to_genomic_sites(in_bed, in_gtf, out_bed,
                                             site2hitc_dic=None,
+                                            chr_id_style=0,
                                             out_folder=False):
     """
     Dependencies:
@@ -986,12 +1047,12 @@ def bed_convert_transcript_to_genomic_sites(in_bed, in_gtf, out_bed,
     >>> test_in_bed = "test_data/test_tr2gen.bed"
     >>> test_out_exp_bed = "test_data/test_tr2gen.exp.bed"
     >>> test_out_tmp_bed = "test_data/test_tr2gen.tmp.bed"
-    >>> bed_convert_transcript_to_genomic_sites(test_in_bed, test_gtf, test_out_tmp_bed)
+    >>> bed_convert_transcript_to_genomic_sites(test_in_bed, test_gtf, test_out_tmp_bed, chr_id_style=1)
     >>> diff_two_files_identical(test_out_exp_bed, test_out_tmp_bed)
     True
     >>> test_out = "test_data/tr2gen_tmp_out"
     >>> test_out_tmp_bed = "test_data/tr2gen_tmp_out/all_hits.bed"
-    >>> bed_convert_transcript_to_genomic_sites(test_in_bed, test_gtf, test_out, out_folder=True)
+    >>> bed_convert_transcript_to_genomic_sites(test_in_bed, test_gtf, test_out, out_folder=True, chr_id_style=1)
     >>> diff_two_files_identical(test_out_exp_bed, test_out_tmp_bed)
     True
 
@@ -1017,7 +1078,8 @@ def bed_convert_transcript_to_genomic_sites(in_bed, in_gtf, out_bed,
     tr_ids_dic = bed_get_chromosome_ids(in_bed)
 
     # Extract transcript exon regions from GTF and store as BED.
-    gtf_extract_exon_bed(in_gtf, tmp_bed, tr_ids_dic=tr_ids_dic)
+    gtf_extract_exon_bed(in_gtf, tmp_bed, tr_ids_dic=tr_ids_dic,
+                         chr_id_style=chr_id_style)
     if out_folder:
         make_file_copy(tmp_bed, out_exon_regions_transcript_bed)
 
@@ -1265,6 +1327,7 @@ def get_transcript_sequences_from_gtf(in_gtf, in_2bit,
                                       correct_min_ex_order=False,
                                       tr2exc_dic=False,
                                       tr_ids_dic=False,
+                                      chr_id_style=1,
                                       tmp_out_folder=False):
     """
     Get spliced transcript sequences based on in_gtf annotations. For
@@ -1296,6 +1359,7 @@ def get_transcript_sequences_from_gtf(in_gtf, in_2bit,
 
     # Extract transcript exon regions from GTF and store as BED.
     gtf_extract_exon_bed(in_gtf, tmp_bed,
+                         chr_id_style=chr_id_style,
                          correct_min_ex_order=correct_min_ex_order,
                          tr2exc_dic=tr2exc_dic,
                          tr_ids_dic=tr_ids_dic)
@@ -1519,8 +1583,10 @@ def bed_read_rows_into_dic(in_bed,
                            to_list=False,
                            id2gen_se_dic=None,
                            check_chr_id_format=True,
+                           chr_id_style=1,
                            int_whole_nr=True,
                            remove_id_count=False,
+                           chr_ids_dic=None,
                            filt_stats_dic=None):
     """
     Read in .bed file rows into dictionary.
@@ -1539,6 +1605,9 @@ def bed_read_rows_into_dic(in_bed,
     remove_id_count:
         If site IDs have format like site_id,count, remove count from ID before
         storing.
+    chr_ids_dic:
+        Store chromosome IDs in dictionary.
+
 
     >>> test_bed = "test_data/test3.bed"
     >>> bed_read_rows_into_dic(test_bed)
@@ -1590,7 +1659,8 @@ def bed_read_rows_into_dic(in_bed,
                         c_sc_thr += 1
                         cont = True
             if check_chr_id_format:
-                new_chr_id = check_convert_chr_id(chr_id)
+                new_chr_id = check_convert_chr_id(chr_id,
+                                            id_style=chr_id_style)
                 if not new_chr_id:
                     c_chr_filt += 1
                     cont = True
@@ -1617,6 +1687,10 @@ def bed_read_rows_into_dic(in_bed,
                     site_sc = int(site_sc)
 
             c_out += 1
+
+            if chr_ids_dic is not None:
+                chr_ids_dic[chr_id] = 1
+
             row = "%s\t%s\t%s\t%s\t%s\t%s" %(chr_id, site_s, site_e, site_id, str(site_sc), site_pol)
             if to_list:
                 id2row_dic[site_id] = [chr_id, int(site_s), int(site_e), site_id, str(site_sc), site_pol]
@@ -2522,6 +2596,7 @@ def gtf_get_intron_exon_cov(in_gtf, in_bam, out_bed,
                             eib_width=10,
                             border_mode=1,
                             count_isr_double=True,
+                            chr_id_style=1,
                             add_isr_bed=False,
                             reg2cov_dic=None,
                             isr_sub_count=True,
@@ -2615,7 +2690,8 @@ def gtf_get_intron_exon_cov(in_gtf, in_bam, out_bed,
             continue
 
         # Restrict to standard chromosomes.
-        new_chr_id = check_convert_chr_id(chr_id)
+        new_chr_id = check_convert_chr_id(chr_id,
+                                id_style=chr_id_style)
         if not new_chr_id:
             continue
         else:
@@ -3688,6 +3764,7 @@ def bed_sort_file(in_bed, out_bed,
 def gtf_extract_exon_bed(in_gtf, out_bed,
                          out_intron_bed=False,
                          add_exon_id=False,
+                         chr_id_style=1,
                          correct_min_ex_order=False,
                          tr2exc_dic=False,
                          tr_ids_dic=False):
@@ -3773,7 +3850,8 @@ def gtf_extract_exon_bed(in_gtf, out_bed,
             continue
 
         # Restrict to standard chromosomes.
-        new_chr_id = check_convert_chr_id(chr_id)
+        new_chr_id = check_convert_chr_id(chr_id,
+                                    id_style=chr_id_style)
         if not new_chr_id:
             continue
         else:
@@ -3891,7 +3969,8 @@ def gtf_extract_exon_bed(in_gtf, out_bed,
 ################################################################################
 
 def gtf_extract_exon_numbers(in_gtf,
-                             tr_ids_dic=False):
+                             tr_ids_dic=False,
+                             chr_id_style=1):
     """
     Given a .gtf file with exon features, return dictionary with transcript
     ID and exon number.
@@ -3928,7 +4007,8 @@ def gtf_extract_exon_numbers(in_gtf,
             continue
 
         # Restrict to standard chromosomes.
-        new_chr_id = check_convert_chr_id(chr_id)
+        new_chr_id = check_convert_chr_id(chr_id,
+                                    id_style=chr_id_style)
         if not new_chr_id:
             continue
         else:
@@ -4058,6 +4138,7 @@ def gtf_extract_unique_exon_bed(in_gtf, out_bed,
                                 tr2exc_dic=False,
                                 reject_tr_bt_dic=False,
                                 gene_feat_check=False,
+                                chr_id_style=1,
                                 next2exids_dic=None,
                                 exid2trid_dic=None,
                                 trid2exc_dic=None,
@@ -4266,7 +4347,8 @@ def gtf_extract_unique_exon_bed(in_gtf, out_bed,
                 continue
 
             # Restrict to standard chromosomes.
-            new_chr_id = check_convert_chr_id(chr_id)
+            new_chr_id = check_convert_chr_id(chr_id,
+                                    id_style=chr_id_style)
             if not new_chr_id:
                 continue
             else:
@@ -4625,6 +4707,7 @@ def get_site_to_pair_id_mapping(all_sites_igv_tsv, id2pairid_dic,
 ################################################################################
 
 def read_in_genomic_regs(exon_sites_gen_regs_bed,
+                         check_chr_ids_dic=False,
                          id2genreg_dic=False):
     """
     Read in genomic regions for each exonic site ID.
@@ -4649,6 +4732,9 @@ def read_in_genomic_regs(exon_sites_gen_regs_bed,
             site_id = cols[3]
             gen_pol = cols[5]
             assert site_id not in id2genreg_dic, "site ID %s already read in. Site IDs need to be unique for merging (also in between --in datasets!)" %(site_id)
+            # Sanity checking if input dataset chromosome IDs found inside --gtf.
+            if check_chr_ids_dic:
+                assert chr_id in check_chr_ids_dic, "chromosome ID \"%s\" from \"%s\" not found in --gtf file" %(chr_id, exon_sites_gen_regs_bed)
             id2genreg_dic[site_id] = [chr_id, gen_s, gen_e, gen_pol]
     f.closed
     assert id2genreg_dic, "id2genreg_dic empty (nothing read in)"
@@ -4712,7 +4798,8 @@ def read_in_all_tr_regs(exon_sites_all_tr_bed, id2allreg_dic,
 
 ################################################################################
 
-def check_convert_chr_id(chr_id):
+def check_convert_chr_id(chr_id,
+                         id_style=1):
     """
     Check and convert chromosome IDs to format:
     chr1, chr2, chrX, ...
@@ -4722,6 +4809,12 @@ def check_convert_chr_id(chr_id):
     Filter out scaffold IDs like:
     GL000009.2, KI270442.1, chr14_GL000009v2_random
     chrUn_KI270442v1 ...
+
+    id_style:
+        Defines to which style chromosome IDs should be converted to.
+        0: Do not convert at all, just return chr_id.
+        1: to chr1,chr2,...,chrM style.
+        2: to 1,2,...,MT style.
 
     >>> chr_id = "chrX"
     >>> check_convert_chr_id(chr_id)
@@ -4738,22 +4831,76 @@ def check_convert_chr_id(chr_id):
     >>> chr_id = "chrUn_KI270442v1"
     >>> check_convert_chr_id(chr_id)
     False
+    >>> chr_id = "chr2R"
+    >>> check_convert_chr_id(chr_id)
+    'chr2R'
+    >>> chr_id = "3L"
+    >>> check_convert_chr_id(chr_id)
+    'chr3L'
+    >>> chr_id = "4L"
+    >>> check_convert_chr_id(chr_id)
+    False
+    >>> chr_id = "chrM"
+    >>> check_convert_chr_id(chr_id, id_style=2)
+    'MT'
+    >>> chr_id = "chr2R"
+    >>> check_convert_chr_id(chr_id, id_style=2)
+    '2R'
+    >>> chr_id = "5"
+    >>> check_convert_chr_id(chr_id, id_style=2)
+    '5'
+    >>> chr_id = "chrA"
+    >>> check_convert_chr_id(chr_id, id_style=2)
+    False
+    >>> chr_id = "chrA"
+    >>> check_convert_chr_id(chr_id, id_style=0)
+    'chrA'
+
 
     """
     assert chr_id, "given chr_id empty"
 
-    if re.search("^chr", chr_id):
-        if not re.search("^chr[\dMXY]+$", chr_id):
-            chr_id = False
-    else:
-        # Convert to "chr" IDs.
-        if chr_id == "MT":
-            chr_id = "M"
-        if re.search("^[\dMXY]+$", chr_id):
-            chr_id = "chr" + chr_id
+    if not id_style: # If id_style == 0 or False.
+        return chr_id
+
+    elif id_style == 1:
+        if re.search("^chr", chr_id):
+            if chr_id in add_chr_names_dic or re.search("^chr[\dMXY]+$", chr_id):
+                return chr_id
+            else:
+                return False
         else:
-            chr_id = False
-    return chr_id
+            # Convert to "chr" IDs.
+            if chr_id == "MT": # special case MT -> chrM.
+                return "chrM"
+            if chr_id in add_chr_names_dic or re.search("^[\dXY]+$", chr_id):
+                return "chr" + chr_id
+            else:
+                return False
+
+    elif id_style == 2:
+
+        if re.search("^chr", chr_id):
+            if chr_id == "chrM": # special case chrM -> MT.
+                return "MT"
+            if chr_id in add_chr_names_dic or re.search("^chr[\dXY]+$", chr_id):
+                # Cut out chr suffix.
+                m = re.search("chr(.+)", chr_id)
+                assert m, "no match for regex search"
+                chr_suffix = m.group(1)
+                return chr_suffix
+            else:
+                return False
+
+        else:
+            if chr_id == "MT": # special case MT.
+                return chr_id
+            if chr_id in add_chr_names_dic or re.search("^[\dXY]+$", chr_id):
+                return chr_id
+            else:
+                return False
+    else:
+        assert False, "invalid id_style set"
 
 
 ################################################################################
@@ -6214,6 +6361,7 @@ def pm_ext_merge_bed_regions(id2row_dic,
     pm_id2row_dic = bed_read_rows_into_dic(m2_tmp_bed,
                                            id2sc_dic=id2sc_dic,
                                            id2len_dic=id2len_dic,
+                                           check_chr_id_format=False,
                                            id2gen_se_dic=id2gen_se_dic)
 
     if os.path.exists(m1_tmp_bed):
@@ -6504,6 +6652,8 @@ def bed_intersect_sites_genes_get_infos(sites_bed, genes_bed, id2gids_dic,
 def gtf_extract_gene_bed(in_gtf, out_bed,
                          gene_ids_dic=False,
                          gid2gn_dic=None,
+                         chr_id_style=1,
+                         chr_ids_dic=None,
                          gid2gbt_dic=None):
     """
     Extract gene regions from in_gtf GTF file, and output to out_bed BED
@@ -6544,7 +6694,8 @@ def gtf_extract_gene_bed(in_gtf, out_bed,
             continue
 
         # Restrict to standard chromosomes.
-        new_chr_id = check_convert_chr_id(chr_id)
+        new_chr_id = check_convert_chr_id(chr_id,
+                                id_style=chr_id_style)
         if not new_chr_id:
             continue
         else:
@@ -6581,6 +6732,9 @@ def gtf_extract_gene_bed(in_gtf, out_bed,
             gid2gn_dic[gene_id] = gene_name
         if gid2gbt_dic is not None:
             gid2gbt_dic[gene_id] = gene_biotype
+
+        if chr_ids_dic is not None:
+            chr_ids_dic[chr_id] = 1
 
         # Output gene region.
         c_out += 1
@@ -6621,7 +6775,8 @@ def read_ids_into_dic(ids_file,
 
 ################################################################################
 
-def gtf_get_transcript_ids(in_gtf):
+def gtf_get_transcript_ids(in_gtf,
+                           chr_ids_dic=None):
     """
     Get transcript IDs from in_gtf GTF file.
 
@@ -6642,10 +6797,14 @@ def gtf_get_transcript_ids(in_gtf):
         if re.search("^#", line):
             continue
         cols = line.strip().split("\t")
+        chr_id = cols[0]
         feature = cols[2]
         infos = cols[8]
         if not feature == "transcript":
             continue
+
+        if chr_ids_dic is not None:
+            chr_ids_dic[chr_id] = 1
 
         # Extract transcript ID.
         m = re.search('transcript_id "(.+?)"', infos)
@@ -7070,6 +7229,7 @@ def bed_get_score_to_count_dic(in_bed):
 
 def gtf_extract_transcript_bed(in_gtf, out_bed,
                                trid2reg_dic=None,
+                               chr_id_style=1,
                                tr_ids_dic=False):
     """
     Extract transcript regions from in_gtf GTF file, and output to out_bed BED
@@ -7112,7 +7272,8 @@ def gtf_extract_transcript_bed(in_gtf, out_bed,
             continue
 
         # Restrict to standard chromosomes.
-        new_chr_id = check_convert_chr_id(chr_id)
+        new_chr_id = check_convert_chr_id(chr_id,
+                                id_style=chr_id_style)
         if not new_chr_id:
             continue
         else:
