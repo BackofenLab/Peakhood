@@ -929,7 +929,7 @@ def main_extract(args):
 
     """
     for chr_id in in_bed_chr_ids_dic:
-        assert chr_id in chr_len_dic, "chromosome ID \"%s\" from --in BED not in --gen .2bit file. Please provide fitting --in BED and --gen .2bit files or set --chr-id-style accordingly" %(chr_id)
+        assert chr_id in chr_len_dic, "chromosome ID \"%s\" from --in BED not in --gen .2bit file. Please provide compatible --in BED and --gen .2bit files or set --chr-id-style accordingly" %(chr_id)
 
     """
     Pre-merge --in sites.
@@ -1286,8 +1286,10 @@ def main_extract(args):
     bam_chr_ids_dic = hoodlib.get_chr_ids_from_bam_file(in_bam,
                                                     k_top_reads=1000)
 
+    assert bam_chr_ids_dic, "no chromsome IDs found in BAM file. Possibly the set --bam-pp-mode resulted in an empty BAM file. Filtering your BAM file with \"samtools view -hb -f 130\" (--bam-pp-mode 2, to obtain R2 reads) or \"samtools view -hb -f 66\" (--bam-pp-mode 3, to obtain R1 reads) should produce a non-empty file"
+
     for chr_id in bam_chr_ids_dic:
-        assert chr_id in chr_len_dic, "first chromosome ID \"%s\" in --bam file not in --gen .2bit file. Please provide compatible --bam and --gen files (i.e., format of chromosome IDs should be the same)" %(chr_id)
+        assert chr_id in chr_len_dic, "first encountered chromosome ID \"%s\" in --bam file not in --gen .2bit file. Please provide compatible --bam and --gen files (i.e., format of chromosome IDs should be the same)" %(chr_id)
 
     """
     Get and count intronic sites on transcripts for TIS filtering.
@@ -1450,6 +1452,10 @@ def main_extract(args):
     c_bam_reads = hoodlib.bam_count_reads(tr_regions_bam)
     print("# of overlapping BAM reads:  %i" %(c_bam_reads))
     assert c_bam_reads, "no --bam reads overlapping with transcripts containing exonic sites. Provide the correct --bam file(s) (--bam file(s) used to determine --in sites), or adjust --bam-pp-mode depending on the used CLIP-seq protocol (e.g. --bam-pp-mode 2 (reverse) for eCLIP, --bam-pp-mode 3 (forward) for iCLIP). Another possible error source is that the BAM file features chromosome names in a format other than chr1,chr2,chr3 (required for Peakhood) .. "
+    if c_bam_reads < 20000:
+        print("WARNING: # of overlapping BAM reads suspiciously low!")
+        print("         Make sure you have selected the correct read")
+        print("         orientation (see --bam-pp-mode) ... ")
 
 
     """
@@ -3756,8 +3762,8 @@ def main_extract(args):
                 next_eibr = eibr_sum / eibr_c
                 next_eibr_list.append(next_eibr)
 
-    assert next_eir_list, "no exon-intron ratios calculated for NEXT IDs"
-    assert next_eibr_list, "no exon-intron border ratios calculated for NEXT IDs"
+    assert next_eir_list, "no exon-intron ratios calculated for NEXT IDs. This could be due to selecting the wrong reads from the --bam file. Use --bam-pp-mode for correct read selection (e.g., R2 for eCLIP, R1 for iCLIP)"
+    assert next_eibr_list, "no exon-intron border ratios calculated for NEXT IDs. This could be due to selecting the wrong reads from the --bam file. Use --bam-pp-mode for correct read selection (e.g., R2 for eCLIP, R1 for iCLIP)"
 
     c_uniq_exons = len(next_eir_list)
     c_eibr_regions = len(next_eibr_list)

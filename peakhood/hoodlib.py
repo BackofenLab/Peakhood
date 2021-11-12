@@ -81,7 +81,7 @@ def dir_get_files(file_dir,
 
     >>> test_dir = "test_data"
     >>> dir_get_files(test_dir, file_ending="bam")
-    ['empty.bam', 'test_reads_chrM.bam']
+    ['empty.bam', 'test_reads_MT.bam', 'test_reads_chrM.bam']
 
     """
 
@@ -283,6 +283,12 @@ def get_chr_ids_from_bam_file(in_bam, k_top_reads=1000):
     >>> in_bam = "test_data/test_reads_chrM.bam"
     >>> get_chr_ids_from_bam_file(in_bam)
     {'chrM': 1}
+    >>> in_bam = "test_data/test_reads_MT.bam"
+    >>> get_chr_ids_from_bam_file(in_bam)
+    {'MT': 1}
+    >>> in_bam = "test_data/empty.bam"
+    >>> get_chr_ids_from_bam_file(in_bam)
+    {}
 
     """
 
@@ -294,8 +300,12 @@ def get_chr_ids_from_bam_file(in_bam, k_top_reads=1000):
     chr_ids_dic = {}
 
     for line in output.split('\n'):
+        if re.search("^@", line): # header should not be in output anyway.
+            continue
         cols = line.strip().split("\t")
         chr_id = cols[0]
+        if not chr_id:
+            continue
         chr_ids_dic[chr_id] = 1
 
     return chr_ids_dic
@@ -6264,7 +6274,7 @@ def filter_bam_file(in_bam, out_bam,
     # Filter.
     filter_flag = "130"
     if pp_mode == 3:
-        filter_flag = "0x40"
+        filter_flag = "66"
     check_cmd = "samtools view -hb -f " + filter_flag + " " + in_bam + " -o " + out_bam
     output = subprocess.getoutput(check_cmd)
     error = False
@@ -6408,7 +6418,7 @@ def merge_filter_bam_files(list_bam, out_bam,
         # Filter.
         filter_flag = "130"
         if pp_mode == 3:
-            filter_flag = "0x40"
+            filter_flag = "66" # 0x40
         # -hb include header and output BAM.
         check_cmd = "samtools view -hb -f " + filter_flag + " " + tmp_bam + " -o " + out_bam
         output = subprocess.getoutput(check_cmd)
