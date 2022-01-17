@@ -12,8 +12,8 @@ and last but not least a comprehensive [documentation](#documentation) of all Pe
 
 ## Citation
 
-The Peakhood paper can be found on [Bioinformatics](https://doi.org/10.1093/bioinformatics/btab755).
-Supplementary data is available at [Zenodo](https://doi.org/10.5281/zenodo.5557101).
+The Peakhood paper is available at [Bioinformatics](https://doi.org/10.1093/bioinformatics/btab755).
+Supplementary data can be downloaded from [Zenodo](https://doi.org/10.5281/zenodo.5557101).
 
 
 ## Table of contents
