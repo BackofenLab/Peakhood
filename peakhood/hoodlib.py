@@ -1644,13 +1644,11 @@ def bed_read_rows_into_dic(in_bed,
             site_pol = cols[5]
             site_l = int(site_e) - int(site_s)
 
-            if id2gen_se_dic is not None:
-                id2gen_se_dic[site_id] = [int(site_s), int(site_e)]
-
             if remove_id_count:
                 m = re.search("(.+),\d", site_id)
                 assert m, "remove_id_count True but side ID %s does not contain count" %(site_id)
                 site_id = m.group(1)
+
             # ID count.
             c_read += 1
             # Apply various filters.
@@ -1700,6 +1698,9 @@ def bed_read_rows_into_dic(in_bed,
 
             if chr_ids_dic is not None:
                 chr_ids_dic[chr_id] = 1
+
+            if id2gen_se_dic is not None:
+                id2gen_se_dic[site_id] = [int(site_s), int(site_e)]
 
             row = "%s\t%s\t%s\t%s\t%s\t%s" %(chr_id, site_s, site_e, site_id, str(site_sc), site_pol)
             if to_list:
