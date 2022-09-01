@@ -1019,7 +1019,7 @@ def bed_get_region_lengths(bed_file):
             assert site_id not in id2len_dic, "column 4 IDs not unique in given .bed file \"%s\"" %(bed_file)
             id2len_dic[site_id] = site_l
     f.closed
-    assert id2len_dic, "No IDs read into dictionary (input file \"%s\" empty or malformatted?)" % (in_bed)
+    assert id2len_dic, "No IDs read into dictionary (input file \"%s\" empty or malformatted?)" % (bed_file)
     return id2len_dic
 
 
@@ -1267,7 +1267,7 @@ def touch_file(in_file):
 
     """
     assert not os.path.exists(in_file), "file %s to create already exists" %(in_file)
-    check_cmd = "touch " + file
+    check_cmd = "touch " + in_file
     output = subprocess.getoutput(check_cmd)
     error = False
     if output:
@@ -4671,7 +4671,7 @@ def read_in_sel_tr_regs(exon_sites_sel_tr_bed, id2selreg_dic,
             sitetrsc_cols = sitetrsc_id.split(",")
             site_id = sitetrsc_cols[0]
             tr_id_check = sitetrsc_cols[1]
-            assert tr_id == tr_id_check, "tr_id != tr_id_check for site ID %s (%s != %s, input file: %s)" %(sitetrsc_id, tr_id, tr_id_check, exon_sites_all_tr_bed)
+            assert tr_id == tr_id_check, "tr_id != tr_id_check for site ID %s (%s != %s, input file: %s)" %(sitetrsc_id, tr_id, tr_id_check, exon_sites_sel_tr_bed)
             if id2dataset_dic is not None:
                 id2dataset_dic[site_id] = dataset_id
             assert site_id not in id2selreg_dic, "site ID %s already read in. Site IDs need to be unique for merging (also in between --in datasets!)" %(site_id)
@@ -4983,7 +4983,7 @@ def bed_check_unique_col4_ids(bed_file):
     """
     ids_dic = {}
     check = True
-    with open(ids_file) as f:
+    with open(bed_file) as f:
         for line in f:
             cols = line.strip().split("\t")
             site_id = cols[3]
